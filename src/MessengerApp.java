@@ -55,8 +55,7 @@ public class MessengerApp extends Application implements Observer {
 		primaryStage.show();
 		
 		primaryStage.setOnCloseRequest( (e) -> {
-			//for(ChatWindow w: list)
-			//	w.close();
+			System.exit(0);
 		});
 	}
 	
@@ -152,10 +151,7 @@ public class MessengerApp extends Application implements Observer {
 	 */
 	@Override
 	public void update(Observable o, Object data) {
-		int FROM_IP = 0;
-		int FROM_PORT = 1;
-		int FROM_DATA = 2;
-		
+	
 		// For Outgoing Messages
 		if( o instanceof ChatWindow) {
 			String message = (String)data;
@@ -169,20 +165,11 @@ public class MessengerApp extends Application implements Observer {
 		{
 			String[] packet = (String[])data; 
 			
-			// Debug
-			System.out.print("Incoming: ");
-			for(String str: packet)
-				System.out.print(str + "\t");
-			System.out.println();
-			
 			String senderIP 	= packet[0];
 			String senderPort	= packet[1];
 			String senderName	= packet[2].substring(0, packet[2].indexOf(':'));
 			String senderMsg	= packet[2].substring(packet[2].indexOf(':')+1);
 			
-
-
-			// Juan:KLOK MI JENTE
 
 			// Handle name requests and responses
 			if( senderMsg.substring(0,12).contains("NAME_REQUEST") || 
