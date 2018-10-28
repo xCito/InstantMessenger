@@ -163,6 +163,7 @@ public class MessengerApp extends Application implements Observer {
 		// For Incoming Messages
 		if( o instanceof Socket ) 
 		{
+			System.out.println("Incoming Message");
 			String[] packet = (String[])data; 
 			
 			String senderIP 	= packet[0];
@@ -172,8 +173,7 @@ public class MessengerApp extends Application implements Observer {
 			
 
 			// Handle name requests and responses
-			if( senderMsg.substring(0,12).contains("NAME_REQUEST") || 
-				senderMsg.substring(0, 13).contains("NAME_RESPONSE")) 
+			if( senderMsg.substring(0, 13).contains("NAME_RESPONSE") ) 
 			{
 				for( ChatWindow cw: list ) {
 					if(cw.requesting) {
@@ -193,9 +193,14 @@ public class MessengerApp extends Application implements Observer {
 			ChatWindow cw = new ChatWindow(username, getIpAddress("localhost"), port);
 			cw.addObserver(this);
 			list.add(cw);
-			
 			cw.setDestination(getIpAddress(senderIP), Integer.valueOf(senderPort));
 			cw.setDestinationID(senderName);
+			
+			if ( senderMsg.substring(0,12).contains("NAME_REQUEST") ) {
+				cw.sendNameResponse();
+				return;
+			}
+			
 			cw.passToChatWindow(senderMsg);
 			Platform.runLater( () -> cw.openNewChatWindow());
 			
@@ -219,6 +224,10 @@ public class MessengerApp extends Application implements Observer {
 			System.out.println("checking.." + senderID + " == " + cw.getDestinationID());
 			if( senderID.equals( cw.getDestinationID() )) {
 				cw.passToChatWindow(msgBody);
+				
+				if(!cw.isOpen())
+					Platform.runLater( () -> cw.openNewChatWindow());
+				
 				return true;
 			}
 		}

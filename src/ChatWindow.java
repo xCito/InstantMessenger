@@ -39,6 +39,7 @@ public class ChatWindow extends Observable {
 	private int destPort;			// Recipient's Port number
 	
 	public boolean requesting;	
+	private boolean isOpen;
 	
 	public ChatWindow( String username, InetAddress srcIP, int srcPort ) {
 		curInstanceCount = instanceCount++;
@@ -47,6 +48,7 @@ public class ChatWindow extends Observable {
 		this.sourceIP = srcIP;
 		this.sourcePort = srcPort;
 		this.requesting = false;
+		this.isOpen = false;
 		
 		textA = new TextArea();
 		textF = new TextField();
@@ -72,20 +74,14 @@ public class ChatWindow extends Observable {
 		stage.setWidth(300);
 		stage.setTitle("Chat #" + curInstanceCount);
 		stage.show();
+		isOpen = true;
 	}
 
 	
 	public void passToChatWindow(String msg) {
 		
-		// Handle name requests
-		if(msg.contains("NAME_REQUEST")) {
-			System.out.println(name + "--N RES");
-			setChanged();
-			notifyObservers(id+":NAME_RESPONSE="+id);
-		}
-		
 		// Handle name responses
-		else if(msg.contains("NAME_RESPONSE") ) {
+		 if(msg.contains("NAME_RESPONSE") ) {
 			requesting = false;
 			System.out.println(name + "--SUC");
 			destName = msg.substring( msg.indexOf('=')+1);
@@ -99,7 +95,8 @@ public class ChatWindow extends Observable {
 	
 	public void acceptNameResponse(String name) {
 		destID = name;
-		label.setText(destID);
+		label.setText( destID.substring(0, destID.length()-1) );
+		requesting = false;
 	}
 	/**
 	 * Appends Text to the textArea (Conversation history)
@@ -109,7 +106,7 @@ public class ChatWindow extends Observable {
 		Platform.runLater(() -> textA.appendText("Me: "+msg + "\n"));
 	}
 	private void otherAppendToMessageHistory(String msg) {
-		Platform.runLater(() -> textA.appendText(destID+": "+msg + "\n"));
+		Platform.runLater(() -> textA.appendText( destID.substring(0, destID.length()-1)+": "+msg + "\n"));
 	}
 
 
@@ -130,6 +127,12 @@ public class ChatWindow extends Observable {
 		setChanged();
 		notifyObservers(msg);
 		System.out.println(name + "init NR--" + System.currentTimeMillis());
+	}
+	
+	public void sendNameResponse() {
+		System.out.println(name + "--N RES");
+		setChanged();
+		notifyObservers(id+":NAME_RESPONSE="+id);
 	}
 
 	/**
@@ -229,7 +232,11 @@ public class ChatWindow extends Observable {
 	 */
 	public void setDestinationID(String senderID) {
 		destID = senderID;
-		label.setText(destID);
+		label.setText(destID.substring(0, destID.length()-1));
+	}
+
+	public boolean isOpen() {
+		return isOpen;
 	}
 
 }
