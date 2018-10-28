@@ -77,6 +77,7 @@ public class ChatWindow extends Observable {
 		
 		// Let the "main" class know this ChatWindow is no longer active
 		stage.setOnCloseRequest( (e) -> {
+			setChanged();
 			notifyObservers("CLOSED");
 		});
 	}

@@ -152,15 +152,18 @@ public class MessengerApp extends Application implements Observer {
 	@Override
 	public void update(Observable o, Object data) {
 	
-		// For Outgoing Messages
 		if( o instanceof ChatWindow) {
-			
-			if(data == "CLOSED")
-				list.remove((ChatWindow)o);
-			
 			
 			String message = (String)data;
 			ChatWindow chat = (ChatWindow)o;
+			
+			// Remove this Chat Window from list of activeChats
+			if(message.equals("CLOSED")) {
+				list.remove(chat);
+				return;
+			}
+			
+			// For Outgoing Messages
 			System.out.println("outgoing: " + message);
 			socket.send( message , chat.getIP(), chat.getPort());
 		}
@@ -177,7 +180,7 @@ public class MessengerApp extends Application implements Observer {
 			String senderMsg	= packet[2].substring(packet[2].indexOf(':')+1);
 			
 
-			// Handle name requests and responses
+			// Handle Name Responses by forwarding responses to the Chat that had sent requests
 			if( senderMsg.substring(0, 13).contains("NAME_RESPONSE") ) 
 			{
 				for( ChatWindow cw: list ) {
@@ -188,12 +191,13 @@ public class MessengerApp extends Application implements Observer {
 				}
 			}
 			
-			// Check if message received is from active chat
+			
+			// Check if incoming message is for an active chat
 			if( passMessageToActiveChat( senderName, senderMsg) )
 				return;
 			
-			// If message is not from one of the current chats...
-			// New Message Received from another user!
+			// If message is not for one of the active chats...
+			// Its a New Message from another user!
 			System.out.println("New Message!");
 			ChatWindow cw = new ChatWindow(username, getIpAddress("localhost"), port);
 			cw.addObserver(this);
@@ -201,11 +205,14 @@ public class MessengerApp extends Application implements Observer {
 			cw.setDestination(getIpAddress(senderIP), Integer.valueOf(senderPort));
 			cw.setDestinationID(senderName);
 			
+			// If New Message is a name request, reply with name response
+			// and Dont open chat window yet..
 			if ( senderMsg.substring(0,12).contains("NAME_REQUEST") ) {
 				cw.sendNameResponse();
 				return;
 			}
 			
+			System.out.println("This should never really print, if yes a Name Request never sent before actual communication");
 			cw.otherAppendToMessageHistory(senderMsg);
 			Platform.runLater( () -> cw.openNewChatWindow());
 			
