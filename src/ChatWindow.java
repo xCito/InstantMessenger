@@ -14,14 +14,18 @@ import javafx.scene.layout.Priority;
 import javafx.stage.Stage;
 
 /*
- * ID
- * 		Name:Message
+ * The ID is composed of:
+ * 		The users Name curInstance count appended: Ex: Bob0, Nick2
+ * 
+ * The Chat Window has a Name Request and Response feature where 
+ * USER1 wants to send a message to USER2. USER1 sends a name request to USER2 to
+ * obtain their name before chatting.
  */
 
 public class ChatWindow extends Observable {
 
-	private static int instanceCount = 0;
-	private int curInstanceCount;
+	private static int instanceCount = 0;	// Used to help Identify which instance 
+	private int curInstanceCount;			// of chat Window to forward incoming messages to
 	
 	private Button sendBtn;			// UI stuff
 	private TextField textF;		// UI stuff
@@ -30,23 +34,18 @@ public class ChatWindow extends Observable {
 	
 	private String id;				// Chat owner's ID
 	private String name;			// Chat owner's Username
-	private InetAddress sourceIP;	// Chat owner's IP address
-	private int sourcePort;			// Chat owner's Port number
 	
 	private String destID;			// Recipient's ID
-	private String destName;		// Recipient's Username
 	private InetAddress destIP;		// Recipient's IP address
 	private int destPort;			// Recipient's Port number
 	
-	public boolean requesting;	
-	private boolean isOpen;
+	private boolean requesting;		// True if waiting for a response to a name request 
+	private boolean isOpen;			// True if the chat window is open
 	
 	public ChatWindow( String username, InetAddress srcIP, int srcPort ) {
 		curInstanceCount = instanceCount++;
 		
 		this.name = username;
-		this.sourceIP = srcIP;
-		this.sourcePort = srcPort;
 		this.requesting = false;
 		this.isOpen = false;
 		
@@ -60,9 +59,9 @@ public class ChatWindow extends Observable {
 		
 		createView();
 		createID();
-		
 	}
 
+// Chat Window core functions
 	/**
 	 * Launches Chat Window
 	 */
@@ -75,84 +74,11 @@ public class ChatWindow extends Observable {
 		stage.setTitle("Chat #" + curInstanceCount);
 		stage.show();
 		isOpen = true;
-	}
-
-	
-	public void passToChatWindow(String msg) {
 		
-		// Handle name responses
-		 if(msg.contains("NAME_RESPONSE") ) {
-			requesting = false;
-			System.out.println(name + "--SUC");
-			destName = msg.substring( msg.indexOf('=')+1);
-		}
-		
-		// Handle other messages
-		else {
-			otherAppendToMessageHistory(msg);
-		}
-	}
-	
-	public void acceptNameResponse(String name) {
-		destID = name;
-		label.setText( destID.substring(0, destID.length()-1) );
-		requesting = false;
-	}
-	/**
-	 * Appends Text to the textArea (Conversation history)
-	 * @param msg - The message
-	 */
-	public void ownerAppendToMessageHistory(String msg) {
-		Platform.runLater(() -> textA.appendText("Me: "+msg + "\n"));
-	}
-	private void otherAppendToMessageHistory(String msg) {
-		Platform.runLater(() -> textA.appendText( destID.substring(0, destID.length()-1)+": "+msg + "\n"));
-	}
-
-
-	/**
-	 * Constructs chat owner's ID
-	 */
-	private void createID() {
-		id = name+""+curInstanceCount;
-	}
-
-	
-	/**
-	 * Sends a name request to other user 
-	 */
-	public void sendNameRequest() {
-		String msg = id+":NAME_REQUEST";
-		requesting = true;
-		setChanged();
-		notifyObservers(msg);
-		System.out.println(name + "init NR--" + System.currentTimeMillis());
-	}
-	
-	public void sendNameResponse() {
-		System.out.println(name + "--N RES");
-		setChanged();
-		notifyObservers(id+":NAME_RESPONSE="+id);
-	}
-
-	/**
-	 * Send Button Event, triggered when clicked.
-	 * - Extracts the text from the input field, and clears it.
-	 * - Notify MessengerApp.java that user wants to send
-	 *       a message.
-	 * - Append extracted text to TextArea
-	 */
-	private void sendButtonEvent() {
-		String msg = textF.getText();
-		textF.clear();
-		
-		if(msg.equals(""))
-			return;
-		
-		setChanged();
-		notifyObservers(id+":"+msg);
-	
-		ownerAppendToMessageHistory(msg);
+		// Let the "main" class know this ChatWindow is no longer active
+		stage.setOnCloseRequest( (e) -> {
+			notifyObservers("CLOSED");
+		});
 	}
 	
 	/**
@@ -175,7 +101,77 @@ public class ChatWindow extends Observable {
 		return border;
 	}
 	
-	// ------------------------------ GETTERS ------------------------------ //
+	/**
+	 * Send Button Event, triggered when clicked.
+	 * - Extracts the text from the input field, and clears it.
+	 * - Notify MessengerApp.java that user wants to send
+	 *       a message.
+	 * - Append extracted text to TextArea
+	 */
+	private void sendButtonEvent() {
+		String msg = textF.getText();
+		textF.clear();
+		
+		if(msg.equals(""))		// Ignore empty string messages 
+			return;
+		
+		setChanged();
+		notifyObservers(id+":"+msg);	// Notify "main" message is going to be sent
+	
+		ownerAppendToMessageHistory(msg);	
+	}
+	
+	/**
+	 * Appends Text to the textArea (Conversation history)
+	 * @param msg - The message
+	 */
+	private void ownerAppendToMessageHistory(String msg) {
+		Platform.runLater(() -> textA.appendText("Me: "+msg + "\n"));
+	}
+	public void otherAppendToMessageHistory(String msg) {
+		Platform.runLater(() -> textA.appendText( destID.substring(0, destID.length()-1)+": "+msg + "\n"));
+	}
+	
+	/**
+	 * Constructs chat owner's ID
+	 */
+	private void createID() {
+		id = name+""+curInstanceCount;
+	}
+	
+// NAME REQUESTS AND RESPONSES
+	/**
+	 * Sends message (request) to the other user asking for their name
+	 */
+	public void sendNameRequest() {
+		String msg = id+":NAME_REQUEST";
+		requesting = true;
+		setChanged();
+		notifyObservers(msg);
+		System.out.println(name + "init NR--" + System.currentTimeMillis());
+	}
+	
+	/**
+	 * Sends message (response) to other user asking for this user's name
+	 */
+	public void sendNameResponse() {
+		System.out.println(name + "--N RES");
+		setChanged();
+		notifyObservers(id+":NAME_RESPONSE="+id);
+	}
+	
+	/**
+	 * Accept the incoming name response from other user
+	 * @param name
+	 */
+	public void acceptNameResponse(String name) {
+		destID = name;
+		label.setText( destID.substring(0, destID.length()-1) );
+		requesting = false;
+	}
+	
+
+// ------------------------------ GETTERS ------------------------------ //
 	/**
 	 * Retrieves the IP address of the message destination
 	 * @return ip address
@@ -192,7 +188,6 @@ public class ChatWindow extends Observable {
 		return destPort;
 	}
 	
-	
 	/**
 	 * Retrieves the ID of the other user send this chat messages
 	 * Used to verify if incoming message is for this chat window
@@ -203,16 +198,7 @@ public class ChatWindow extends Observable {
 		return destID;
 	}
 	
-	/**
-	 * Retrieves other user's basic communication information
-	 * @return IP address and port of other user separated by '/'
-	 */
-	public String getSenderIPAndPort() {
-		return destIP.getHostAddress()+"/"+destPort;
-	}
-	
-	
-	// ------------------------------ SETTERS ------------------------------ //
+// ------------------------------ SETTERS ------------------------------ //
 	
 	/**
 	 * Set the destination IP address and port to where 
@@ -227,7 +213,7 @@ public class ChatWindow extends Observable {
 	
 	
 	/**
-	 * NOT REALLY NEEDED
+	 * Sets the other user's ID/Name
 	 * @param senderID
 	 */
 	public void setDestinationID(String senderID) {
@@ -237,6 +223,10 @@ public class ChatWindow extends Observable {
 
 	public boolean isOpen() {
 		return isOpen;
+	}
+
+	public boolean isRequesting() {
+		return requesting;
 	}
 
 }

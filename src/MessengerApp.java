@@ -154,6 +154,11 @@ public class MessengerApp extends Application implements Observer {
 	
 		// For Outgoing Messages
 		if( o instanceof ChatWindow) {
+			
+			if(data == "CLOSED")
+				list.remove((ChatWindow)o);
+			
+			
 			String message = (String)data;
 			ChatWindow chat = (ChatWindow)o;
 			System.out.println("outgoing: " + message);
@@ -176,7 +181,7 @@ public class MessengerApp extends Application implements Observer {
 			if( senderMsg.substring(0, 13).contains("NAME_RESPONSE") ) 
 			{
 				for( ChatWindow cw: list ) {
-					if(cw.requesting) {
+					if(cw.isRequesting()) {
 						cw.acceptNameResponse(senderName);
 						return;
 					}
@@ -201,7 +206,7 @@ public class MessengerApp extends Application implements Observer {
 				return;
 			}
 			
-			cw.passToChatWindow(senderMsg);
+			cw.otherAppendToMessageHistory(senderMsg);
 			Platform.runLater( () -> cw.openNewChatWindow());
 			
 			
@@ -223,7 +228,7 @@ public class MessengerApp extends Application implements Observer {
 		for(ChatWindow cw: list) {
 			System.out.println("checking.." + senderID + " == " + cw.getDestinationID());
 			if( senderID.equals( cw.getDestinationID() )) {
-				cw.passToChatWindow(msgBody);
+				cw.otherAppendToMessageHistory(msgBody);
 				
 				if(!cw.isOpen())
 					Platform.runLater( () -> cw.openNewChatWindow());
