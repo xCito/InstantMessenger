@@ -13,6 +13,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -48,10 +49,13 @@ public class MessengerApp extends Application implements Observer {
 	@Override
 	public void start(Stage primaryStage) throws Exception {
 		
-		primaryStage.setScene( getNewConversationScene() );
-		primaryStage.setTitle("Networking Messenger");
-		primaryStage.setHeight(250);
-		primaryStage.setWidth(300);
+		Scene scene = getNewConversationScene();
+		scene.getStylesheets().add("style.css");
+		primaryStage.setScene( scene );
+		primaryStage.setTitle("Messenger Thing");
+		primaryStage.setHeight(290);
+		primaryStage.setWidth(352);
+		primaryStage.getIcons().add(new Image("LetterM.png"));
 		primaryStage.show();
 		
 		primaryStage.setOnCloseRequest( (e) -> {
@@ -90,20 +94,26 @@ public class MessengerApp extends Application implements Observer {
 		GridPane grid = new GridPane();
 		VBox vbox = new VBox();
 		
-		Text user = new Text("Username: " + username);
-		Text infoIP = new Text( "Current IP:" + getIpAddress("localhost").getHostAddress() );
-		Text infoPort = new Text("App on Port: " + this.port);
+		Label user = new Label("Username:\t" + username);
+		Label infoIP = new Label( "Current IP:\t" + getIpAddress("localhost").getHostAddress() );
+		Label infoPort = new Label("App on Port:\t" + this.port);
+		user.setId("maLabel");
+		infoIP.setId("maLabel");
+		infoPort.setId("maLabel");
+		
 		vbox.getChildren().addAll(user, infoIP, infoPort);
 		
 		Label destIPLabel = new Label("Enter IP Address: ");
-		Label destPortLabel = new Label("Enter port number: ");
+		Label destPortLabel = new Label("Enter Port: ");
 		destIPF = new TextField();
 		destPortF = new TextField();
 		HBox hbox = new HBox();
 		
-		Button startChatBtn = new Button("Start Chat");
+		Button startChatBtn = new Button("Start Chatting");
 		startChatBtn.setPrefWidth(200);
 		startChatBtn.setPrefHeight(50);
+		startChatBtn.setId("startCWButton");
+		startChatBtn.setDefaultButton(true);
 		startChatBtn.setOnAction( e -> { 
 			
 			String destip = destIPF.getText();
@@ -126,12 +136,14 @@ public class MessengerApp extends Application implements Observer {
 		
 		grid.add(destIPLabel, 	0, 	1);
 		grid.add(destPortLabel, 0,  2);
-
 		grid.add(destIPF, 		1, 	1);
 		grid.add(destPortF, 	1, 	2);
-		
 		grid.add(hbox, 			0, 	3,	2,	1);
+		grid.setVgap(10);
+		grid.setHgap(6);
+		
 		border.setCenter(grid);
+		//BorderPane.setAlignment(grid, Pos.CENTER);
 		border.setTop(vbox);
 		return new Scene(border);
 	}
@@ -198,7 +210,7 @@ public class MessengerApp extends Application implements Observer {
 			
 			// If message is not for one of the active chats...
 			// Its a New Message from another user!
-			System.out.println("New Message!");
+			System.out.println("New Message! From " + senderName);
 			ChatWindow cw = new ChatWindow(username, getIpAddress("localhost"), port);
 			cw.addObserver(this);
 			list.add(cw);

@@ -1,0 +1,50 @@
+
+
+cwBackground {
+	-fx-background-color: #008000;
+}
+
+#queryButton {
+	-fx-padding: 20px 40px 20px 40px;
+	-fx-border-color: #7dffff;
+	-fx-font-weight: normal;
+}
+
+#startCWButton {
+	-fx-border-color: #009191;
+	-fx-font-weight: lighter;	
+}
+
+BorderPane {
+	-fx-padding: 5px;
+	-fx-background-color: #c7fafe;
+}
+
+.label {
+	-fx-font-family: sans-serif;
+	-fx-font-weight: lighter; 
+}
+
+VBox {
+	-fx-spacing: 5px;
+	-fx-background-color: #9eddf5;
+	-fx-padding: 8px;
+}
+
+#qLabel {
+	-fx-font-size: 1.2em;
+	-fx-font-family: sans-serif;
+	-fx-font-weight: lighter; 
+}
+
+#maLabel {
+	-fx-font-size: 1.1em;
+	-fx-font-family: sans-serif;
+	-fx-font-weight: lighter;
+}
+
+#otherNameLabel {
+	-fx-font-size: 1.1em;
+	-fx-font-family: sans-serif;
+	-fx-font-weight: lighter;
+}

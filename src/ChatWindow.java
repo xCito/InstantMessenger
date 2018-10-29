@@ -2,11 +2,13 @@ import java.net.InetAddress;
 import java.util.Observable;
 
 import javafx.application.Platform;
+import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -26,7 +28,8 @@ public class ChatWindow extends Observable {
 
 	private static int instanceCount = 0;	// Used to help Identify which instance 
 	private int curInstanceCount;			// of chat Window to forward incoming messages to
-	
+		
+	private BorderPane root;		// UI stuff
 	private Button sendBtn;			// UI stuff
 	private TextField textF;		// UI stuff
 	private TextArea textA;			// UI stuff
@@ -44,18 +47,11 @@ public class ChatWindow extends Observable {
 	
 	public ChatWindow( String username, InetAddress srcIP, int srcPort ) {
 		curInstanceCount = instanceCount++;
+		destID = "Unknown";
 		
 		this.name = username;
 		this.requesting = false;
 		this.isOpen = false;
-		
-		textA = new TextArea();
-		textF = new TextField();
-		sendBtn = new Button("send");
-		label = new Label( destID );
-		
-		sendBtn.setOnAction( e -> sendButtonEvent() );
-		textA.setEditable(false);
 		
 		createView();
 		createID();
@@ -67,11 +63,13 @@ public class ChatWindow extends Observable {
 	 */
 	public void openNewChatWindow() {
 		Stage stage = new Stage();
-		Scene scene = new Scene( createView() );
+		Scene scene = new Scene( root );
+		scene.getStylesheets().add("style.css");
 		stage.setScene(scene);
-		stage.setHeight(200);
-		stage.setWidth(300);
+		stage.setHeight(250);
+		stage.setWidth(350);
 		stage.setTitle("Chat #" + curInstanceCount);
+		stage.getIcons().add(new Image("LetterM.png"));
 		stage.show();
 		isOpen = true;
 		
@@ -85,9 +83,19 @@ public class ChatWindow extends Observable {
 	/**
 	 * Creates the UI for the chat window
 	 */
-	private BorderPane createView() {
-		BorderPane border = new BorderPane();
+	private void createView() {
+		root = new BorderPane();
 		AnchorPane anchor = new AnchorPane();
+		textA = new TextArea();
+		textF = new TextField();
+		sendBtn = new Button("send");
+		label = new Label( "To " + destID );
+		
+		label.setId("otherNameLabel");
+		sendBtn.setOnAction( e -> sendButtonEvent() );
+		sendBtn.setDefaultButton(true);
+		textA.setEditable(false);
+		
 		AnchorPane.setRightAnchor(sendBtn, 1.0);
 		anchor.getChildren().add(sendBtn);
 		
@@ -95,11 +103,10 @@ public class ChatWindow extends Observable {
 		HBox.setHgrow(textF, Priority.ALWAYS);
 		hbox.getChildren().addAll(textF, anchor);
 	
-		border.setTop(label);
-		border.setCenter(textA);
-		border.setBottom(hbox);
-		
-		return border;
+		root.setTop(label);
+		root.setCenter(textA);
+		root.setBottom(hbox);
+		BorderPane.setMargin(textA, new Insets(3));
 	}
 	
 	/**
@@ -167,7 +174,7 @@ public class ChatWindow extends Observable {
 	 */
 	public void acceptNameResponse(String name) {
 		destID = name;
-		label.setText( destID.substring(0, destID.length()-1) );
+		label.setText("To " + destID.substring(0, destID.length()-1) );
 		requesting = false;
 	}
 	
@@ -219,7 +226,8 @@ public class ChatWindow extends Observable {
 	 */
 	public void setDestinationID(String senderID) {
 		destID = senderID;
-		label.setText(destID.substring(0, destID.length()-1));
+		String displayName = destID.substring(0, destID.length()-1);
+		label.setText("To " + displayName);
 	}
 
 	public boolean isOpen() {
