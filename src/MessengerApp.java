@@ -185,50 +185,69 @@ public class MessengerApp extends Application implements Observer {
 		{
 			System.out.println("Incoming Message");
 			String[] packet = (String[])data; 
+			boolean internal;
 			
 			String senderIP 	= packet[0];
 			String senderPort	= packet[1];
-			String senderName	= packet[2].substring(0, packet[2].indexOf(':'));
-			String senderMsg	= packet[2].substring(packet[2].indexOf(':')+1);
+			String senderName = "_";
+			String senderMsg = packet[2];
 			
-
-			// Handle Name Responses by forwarding responses to the Chat that had sent requests
-			if( senderMsg.substring(0, 13).contains("NAME_RESPONSE") ) 
-			{
-				for( ChatWindow cw: list ) {
-					if(cw.isRequesting()) {
-						cw.acceptNameResponse(senderName);
+			internal = fromOtherMessengerApp(packet[2]+":");
+			
+			if( internal ) {
+				System.out.println("INTERNAL MESSAGE RECEIVED");
+				senderName	= packet[2].substring(0, packet[2].indexOf(':'));
+				senderMsg	= packet[2].substring(packet[2].indexOf(':')+1);
+				
+				// Handle Name Responses by forwarding responses to the Chat that had sent requests
+				if( senderMsg.substring(0, 13).contains("NAME_RESPONSE") ) {
+					for( ChatWindow cw: list ) {
+						if(cw.isRequesting()) {
+							cw.acceptNameResponse(senderName);
+							return;
+						}
+					}
+				}
+				
+				// Check if incoming message is for an active chat
+				if( passMessageToActiveChat( senderName, senderMsg ) )
+					return;
+				
+				// If message is not for one of the active chats...
+				// Its a New Message from another user!
+				System.out.println("New Message! From " + senderName);
+				ChatWindow cw = new ChatWindow(username, getIpAddress("localhost"), port);
+				cw.addObserver(this);
+				list.add(cw);
+				cw.setDestination(getIpAddress(senderIP), Integer.valueOf(senderPort));
+				cw.setDestinationID(senderName);
+				
+				// If New Message is a name request, reply with name response
+				// and Dont open chat window yet..
+				if ( senderMsg.substring(0,12).contains("NAME_REQUEST") ) {
+					cw.sendNameResponse();
+					return;
+				}
+				
+			} else {
+				System.out.println("OUTSIDER MESSAGE RECEIVED");
+				for(ChatWindow cw: list) {
+					if( cw.getIPString().equals(senderIP) && cw.getPort() == Integer.valueOf(senderPort)) {
+						cw.otherAppendToMessageHistory(senderMsg);
 						return;
 					}
 				}
+				
+				ChatWindow cw = new ChatWindow(username, getIpAddress("localhost"), port);
+				cw.addObserver(this);
+				list.add(cw);
+				cw.setDestination(getIpAddress(senderIP), Integer.valueOf(senderPort));
+				cw.otherAppendToMessageHistory(senderMsg);
+				cw.isInternalCommunication(false);
+				
+				Platform.runLater( () -> cw.openNewChatWindow());
+		
 			}
-			
-			
-			// Check if incoming message is for an active chat
-			if( passMessageToActiveChat( senderName, senderMsg) )
-				return;
-			
-			// If message is not for one of the active chats...
-			// Its a New Message from another user!
-			System.out.println("New Message! From " + senderName);
-			ChatWindow cw = new ChatWindow(username, getIpAddress("localhost"), port);
-			cw.addObserver(this);
-			list.add(cw);
-			cw.setDestination(getIpAddress(senderIP), Integer.valueOf(senderPort));
-			cw.setDestinationID(senderName);
-			
-			// If New Message is a name request, reply with name response
-			// and Dont open chat window yet..
-			if ( senderMsg.substring(0,12).contains("NAME_REQUEST") ) {
-				cw.sendNameResponse();
-				return;
-			}
-			
-			System.out.println("This should never really print, if yes a Name Request never sent before actual communication");
-			cw.otherAppendToMessageHistory(senderMsg);
-			Platform.runLater( () -> cw.openNewChatWindow());
-			
-			
 			
 		}
 		
@@ -254,11 +273,18 @@ public class MessengerApp extends Application implements Observer {
 				
 				return true;
 			}
+		
 		}
 		return false;
 	}
 	
 
-	
+	public boolean fromOtherMessengerApp(String packet) {
+		System.out.println("Yerrr");
+		System.out.println( packet + " ---> regex check: " + packet.matches("\\w+\\d:.*"));
+		System.out.println( packet );
+		System.out.println( "regex check: " + packet.matches("\\w+\\d:.*"));
+		return packet.matches("\\w+\\d:.*");
+	}
 	
 }

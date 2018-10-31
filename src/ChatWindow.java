@@ -44,10 +44,12 @@ public class ChatWindow extends Observable {
 	
 	private boolean requesting;		// True if waiting for a response to a name request 
 	private boolean isOpen;			// True if the chat window is open
+	private boolean internalComm;	// True if the ChatWindow is chatting with another ChatWindow
 	
 	public ChatWindow( String username, InetAddress srcIP, int srcPort ) {
 		curInstanceCount = instanceCount++;
 		destID = "Unknown";
+		internalComm = false;
 		
 		this.name = username;
 		this.requesting = false;
@@ -124,8 +126,12 @@ public class ChatWindow extends Observable {
 			return;
 		
 		setChanged();
-		notifyObservers(id+":"+msg);	// Notify "main" message is going to be sent
-	
+		
+		if(internalComm)
+			notifyObservers(id+":"+msg);	// Notify "main" message is going to be sent
+		else
+			notifyObservers(msg);
+		
 		ownerAppendToMessageHistory(msg);	
 	}
 	
@@ -176,6 +182,7 @@ public class ChatWindow extends Observable {
 		destID = name;
 		label.setText("To " + destID.substring(0, destID.length()-1) );
 		requesting = false;
+		internalComm = true;
 	}
 	
 
@@ -186,6 +193,14 @@ public class ChatWindow extends Observable {
 	 */
 	public InetAddress getIP() {
 		return destIP;
+	}
+	
+	/**
+	 * Retrieves the IP address of the message destination
+	 * @return ip address
+	 */
+	public String getIPString() {
+		return destIP.getHostAddress();
 	}
 	
 	/**
@@ -208,6 +223,9 @@ public class ChatWindow extends Observable {
 	
 // ------------------------------ SETTERS ------------------------------ //
 	
+	public void isInternalCommunication( boolean internal ) {
+		internalComm = internal;
+	}
 	/**
 	 * Set the destination IP address and port to where 
 	 * messages will be sent.

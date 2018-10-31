@@ -45,6 +45,7 @@ public class Socket extends Observable{
 			socket.send(packetOut);
 		} 
 		catch (IOException e) {
+			System.out.println("cant send...");
 			e.printStackTrace();
 		}
 	}
