@@ -9,6 +9,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -45,12 +46,13 @@ public class ChatWindow extends Observable {
 	private boolean requesting;		// True if waiting for a response to a name request 
 	private boolean isOpen;			// True if the chat window is open
 	private boolean internalComm;	// True if the ChatWindow is chatting with another ChatWindow
+	private boolean darkTheme;
 	
 	public ChatWindow( String username, InetAddress srcIP, int srcPort ) {
 		curInstanceCount = instanceCount++;
 		destID = "Unknown";
 		internalComm = false;
-		
+		darkTheme = false;
 		this.name = username;
 		this.requesting = false;
 		this.isOpen = false;
@@ -68,8 +70,8 @@ public class ChatWindow extends Observable {
 		Scene scene = new Scene( root );
 		scene.getStylesheets().add("style.css");
 		stage.setScene(scene);
-		stage.setHeight(250);
-		stage.setWidth(350);
+		stage.setHeight(270);
+		stage.setWidth(380);
 		stage.setTitle("Chat #" + curInstanceCount);
 		stage.getIcons().add(new Image("LetterM.png"));
 		stage.show();
@@ -88,26 +90,39 @@ public class ChatWindow extends Observable {
 	private void createView() {
 		root = new BorderPane();
 		AnchorPane anchor = new AnchorPane();
+		AnchorPane topAnchor = new AnchorPane();
+		Image img = new Image("darksunicon.png");
+		ImageView imgView = new ImageView(img);
+		imgView.setOnMouseClicked( (e) -> toggleTheme() );
+		imgView.setFitWidth(30);
+		imgView.setFitHeight(30);
 		textA = new TextArea();
+		textA.setFocusTraversable(false);
 		textF = new TextField();
 		sendBtn = new Button("send");
 		label = new Label( "To " + destID );
+		
 		
 		label.setId("otherNameLabel");
 		sendBtn.setOnAction( e -> sendButtonEvent() );
 		sendBtn.setDefaultButton(true);
 		textA.setEditable(false);
 		
-		AnchorPane.setRightAnchor(sendBtn, 1.0);
 		anchor.getChildren().add(sendBtn);
+		topAnchor.getChildren().addAll(label, imgView);
+		AnchorPane.setRightAnchor(sendBtn, 1.0);
+		AnchorPane.setTopAnchor(imgView, 0.0);
+		AnchorPane.setRightAnchor(imgView, 0.0);
+		AnchorPane.setTopAnchor(label, 1.0);
+		AnchorPane.setLeftAnchor(label, 1.0);
 		
-		HBox hbox = new HBox();
+		HBox lowHbox = new HBox();
 		HBox.setHgrow(textF, Priority.ALWAYS);
-		hbox.getChildren().addAll(textF, anchor);
-	
-		root.setTop(label);
+		lowHbox.getChildren().addAll(textF, anchor);
+		root.setTop(topAnchor);
 		root.setCenter(textA);
-		root.setBottom(hbox);
+		root.setBottom(lowHbox);
+		root.setId("chatWindowLightBP");
 		BorderPane.setMargin(textA, new Insets(3));
 	}
 	
@@ -153,6 +168,19 @@ public class ChatWindow extends Observable {
 		id = name+""+curInstanceCount;
 	}
 	
+	private void toggleTheme() {
+		if(darkTheme) {
+			root.setId("chatWindowLightBP");
+			textA.setId("textAreaLight");
+			label.setId("nameLabelLight");
+			darkTheme = false;
+		} else {
+			root.setId("chatWindowDarkBP");
+			textA.setId("textAreaDark");
+			label.setId("nameLabelDark");
+			darkTheme = true;
+		}
+	}
 // NAME REQUESTS AND RESPONSES
 	/**
 	 * Sends message (request) to the other user asking for their name
@@ -180,7 +208,7 @@ public class ChatWindow extends Observable {
 	 */
 	public void acceptNameResponse(String name) {
 		destID = name;
-		label.setText("To " + destID.substring(0, destID.length()-1) );
+		Platform.runLater( () -> label.setText("To " + destID.substring(0, destID.length()-1) ));
 		requesting = false;
 		internalComm = true;
 	}
@@ -235,6 +263,7 @@ public class ChatWindow extends Observable {
 	public void setDestination( InetAddress destIP, int destPort) {
 		this.destIP = destIP;
 		this.destPort = destPort;
+		setDestinationID( destIP.getHostAddress() +"  |  "+ destPort + " " );
 	}
 	
 	
@@ -245,7 +274,7 @@ public class ChatWindow extends Observable {
 	public void setDestinationID(String senderID) {
 		destID = senderID;
 		String displayName = destID.substring(0, destID.length()-1);
-		label.setText("To " + displayName);
+		Platform.runLater( () -> label.setText("To " + displayName));
 	}
 
 	public boolean isOpen() {

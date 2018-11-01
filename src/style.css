@@ -15,11 +15,44 @@ cwBackground {
 	-fx-font-weight: lighter;	
 }
 
-BorderPane {
+/* LIGHT THEME*/ 
+
+#chatWindowLightBP {
 	-fx-padding: 5px;
 	-fx-background-color: #c7fafe;
 }
+#textAreaLight {
+	-fx-control-inner-background: white;
+	-fx-text-fill: black;
+	-fx-background-color:#009191;
+	
+	-fx-highlight-fill: dodgerblue;
+	-fx-highlight-text-fill: white;	
+}
+#nameLabelLight {
+	-fx-text-fill: black;
+	-fx-font-family: sans-serif;
+	-fx-font-weight: lighter; 
+} 
 
+/* DARK THEME */
+#chatWindowDarkBP {
+	-fx-padding: 5px;
+	-fx-background-color: #151b26;
+}
+#textAreaDark {
+	-fx-control-inner-background: #3f444c;
+	-fx-background-color:#009191 ;
+	-fx-text-fill: white;
+	
+	-fx-highlight-fill: gray;
+	-fx-highlight-text-fill: white;	
+}
+#nameLabelDark {
+	-fx-text-fill: white;
+	-fx-font-family: sans-serif;
+	-fx-font-weight: lighter; 
+} 
 .label {
 	-fx-font-family: sans-serif;
 	-fx-font-weight: lighter; 
