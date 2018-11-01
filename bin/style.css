@@ -6,11 +6,16 @@ cwBackground {
 
 #queryButton {
 	-fx-padding: 20px 40px 20px 40px;
-	-fx-border-color: #7dffff;
-	-fx-font-weight: normal;
+	-fx-background-radius: 0,0,0,0;
+	-fx-background-color: #171821;
+	-fx-text-fill: #00f2ff;
+	-fx-border-color: #009191;
 }
 
 #startCWButton {
+	-fx-background-radius: 0,0,0,0;
+	-fx-background-color: #171821;
+	-fx-text-fill: #00f2ff;
 	-fx-border-color: #009191;
 	-fx-font-weight: lighter;	
 }
@@ -25,15 +30,22 @@ cwBackground {
 	-fx-control-inner-background: white;
 	-fx-text-fill: black;
 	-fx-background-color:#009191;
-	
 	-fx-highlight-fill: dodgerblue;
 	-fx-highlight-text-fill: white;	
 }
 #nameLabelLight {
 	-fx-text-fill: black;
 	-fx-font-family: sans-serif;
-	-fx-font-weight: lighter; 
+	-fx-font-weight: bold; 
 } 
+#textFieldLight {
+	-fx-control-inner-background: white;
+	-fx-text-fill: black;
+/* 	-fx-background-color:#009191; */
+	-fx-highlight-fill: dodgerblue;
+	-fx-highlight-text-fill: white;	
+	-fx-background-radius: 0, 0, 0, 0;
+}
 
 /* DARK THEME */
 #chatWindowDarkBP {
@@ -42,7 +54,7 @@ cwBackground {
 }
 #textAreaDark {
 	-fx-control-inner-background: #3f444c;
-	-fx-background-color:#009191 ;
+ 	-fx-background-color:#009191;
 	-fx-text-fill: white;
 	
 	-fx-highlight-fill: gray;
@@ -51,22 +63,58 @@ cwBackground {
 #nameLabelDark {
 	-fx-text-fill: white;
 	-fx-font-family: sans-serif;
-	-fx-font-weight: lighter; 
-} 
+	-fx-font-weight: bold; 
+}
+#textFieldDark {
+	-fx-control-inner-background: #3f444c;
+	/*-fx-background-color:#009191; */
+	-fx-text-fill: white;
+	-fx-highlight-fill: gray;
+	-fx-highlight-text-fill: white;	
+	-fx-background-radius: 0, 0, 0, 0;
+	-fx-border-color: #009191;
+}
+#sendButtonDark {
+	-fx-background-radius: 0,0,0,0;
+	-fx-background-color: #171821;
+	-fx-text-fill: #00f2ff;
+	-fx-border-color: #009191;
+}
+
+TextField {
+	-fx-control-inner-background: #3f444c;
+	-fx-text-fill: white;
+	-fx-highlight-fill: gray;
+	-fx-highlight-text-fill: white;	
+	-fx-background-radius: 0, 0, 0, 0;
+	-fx-border-color: #009191;
+}
+HBox {
+	-fx-padding: 10px 0px 10px 0px;	
+}
+
+ 
 .label {
 	-fx-font-family: sans-serif;
 	-fx-font-weight: lighter; 
+	-fx-text-fill: #00f2ff;
+}
+
+BorderPane {
+	-fx-background-color: #151b26;	
+	-fx-padding: 10px;
 }
 
 VBox {
 	-fx-spacing: 5px;
-	-fx-background-color: #9eddf5;
+	-fx-background-color: #151b26;
 	-fx-padding: 8px;
 }
 
 #qLabel {
 	-fx-font-size: 1.2em;
 	-fx-font-family: sans-serif;
+	-fx-text-fill: #00f2ff;
 	-fx-font-weight: lighter; 
 }
 

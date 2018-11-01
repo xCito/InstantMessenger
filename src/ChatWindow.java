@@ -35,6 +35,7 @@ public class ChatWindow extends Observable {
 	private TextField textF;		// UI stuff
 	private TextArea textA;			// UI stuff
 	private Label label;			// UI stuff
+	private ImageView imgView;		// UI stuff
 	
 	private String id;				// Chat owner's ID
 	private String name;			// Chat owner's Username
@@ -92,9 +93,9 @@ public class ChatWindow extends Observable {
 		AnchorPane anchor = new AnchorPane();
 		AnchorPane topAnchor = new AnchorPane();
 		Image img = new Image("darksunicon.png");
-		ImageView imgView = new ImageView(img);
+		imgView = new ImageView(img);
 		imgView.setOnMouseClicked( (e) -> toggleTheme() );
-		imgView.setFitWidth(30);
+		imgView.setFitWidth(33);
 		imgView.setFitHeight(30);
 		textA = new TextArea();
 		textA.setFocusTraversable(false);
@@ -124,6 +125,7 @@ public class ChatWindow extends Observable {
 		root.setBottom(lowHbox);
 		root.setId("chatWindowLightBP");
 		BorderPane.setMargin(textA, new Insets(3));
+		toggleTheme();
 	}
 	
 	/**
@@ -173,11 +175,19 @@ public class ChatWindow extends Observable {
 			root.setId("chatWindowLightBP");
 			textA.setId("textAreaLight");
 			label.setId("nameLabelLight");
+			textF.setId("textFieldLight");
+			sendBtn.setId("");
+			imgView.setImage( new Image("DarkSunIcon.png"));
+			
 			darkTheme = false;
 		} else {
 			root.setId("chatWindowDarkBP");
 			textA.setId("textAreaDark");
 			label.setId("nameLabelDark");
+			textF.setId("textFieldDark");
+			sendBtn.setId("sendButtonDark");
+			imgView.setImage( new Image("WhiteMoonIcon.png"));
+			
 			darkTheme = true;
 		}
 	}

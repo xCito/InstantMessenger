@@ -53,8 +53,8 @@ public class MessengerApp extends Application implements Observer {
 		scene.getStylesheets().add("style.css");
 		primaryStage.setScene( scene );
 		primaryStage.setTitle("Messenger Thing");
-		primaryStage.setHeight(290);
-		primaryStage.setWidth(352);
+		primaryStage.setHeight(325);
+		primaryStage.setWidth(355);
 		primaryStage.getIcons().add(new Image("LetterM.png"));
 		primaryStage.show();
 		
@@ -111,7 +111,7 @@ public class MessengerApp extends Application implements Observer {
 		
 		Button startChatBtn = new Button("Start Chatting");
 		startChatBtn.setPrefWidth(200);
-		startChatBtn.setPrefHeight(50);
+		startChatBtn.setPrefHeight(55);
 		startChatBtn.setId("startCWButton");
 		startChatBtn.setDefaultButton(true);
 		startChatBtn.setOnAction( e -> { 
