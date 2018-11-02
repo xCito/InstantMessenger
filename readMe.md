@@ -10,12 +10,14 @@ This is the first window that will appear. This window will query the user what 
 
 ### Menu/Conversation Starter
 ![Image of Convo Starter](https://github.com/xCito/InstantMessenger/blob/master/Screenshots/ssConvoStarter.png)
+
 This is the second window that will appear. This window displays the user's chosen nickname/username, current IP address on their network, and the port this Messenger Thing application is running on.
 The user enter's the IP address and port number of another user (or their own) to start chatting with them.
 
 
 ### The Chat Window
 ![Image of Chat Window](https://github.com/xCito/InstantMessenger/blob/master/Screenshots/ssChatWindow.png)
+
 This window will appear when the user attempts to start chatting with another user or when the user receives a message. 
 If user1 is chatting with another user2 using this Messenger Thing application, they will know eachother's name. This is done right before that chatting begins. 
 
