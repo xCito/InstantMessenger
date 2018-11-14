@@ -21,6 +21,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
+// Master Branch
 public class MessengerApp extends Application implements Observer {
 
 	Vector<ChatWindow> list = new Vector<>();
@@ -278,7 +279,6 @@ public class MessengerApp extends Application implements Observer {
 		return false;
 	}
 	
-
 	public boolean fromOtherMessengerApp(String packet) {
 		System.out.println("Yerrr");
 		System.out.println( packet + " ---> regex check: " + packet.matches("\\w+\\d:.*"));
