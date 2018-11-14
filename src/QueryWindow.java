@@ -48,6 +48,7 @@ public class QueryWindow {
 		stage.setHeight(300);
 		stage.setTitle("Port Selection");
 		stage.initStyle(StageStyle.UTILITY);
+		stage.setOnCloseRequest((e) -> System.exit(0));
 		stage.showAndWait();
 	}
 	
