@@ -21,6 +21,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
+// Broadcast Feature Branch
 public class MessengerApp extends Application implements Observer {
 
 	Vector<ChatWindow> list = new Vector<>();
