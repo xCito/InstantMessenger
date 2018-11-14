@@ -30,7 +30,6 @@ public class QueryWindow {
 		Button btn = new Button("Open Messenger App");
 		
 		field.setText("64000");	// Default port number
-		field2.requestFocus();
 		
 		btn.setOnAction( (e) -> { 
 			this.port = Integer.valueOf(field.getText()); 
@@ -51,6 +50,8 @@ public class QueryWindow {
 		stage.setHeight(300);
 		stage.setTitle("Port Selection");
 		stage.initStyle(StageStyle.UTILITY);
+		stage.setOnCloseRequest((e) -> System.exit(0)); 
+		field2.requestFocus();
 		stage.showAndWait();
 	}
 	

@@ -1,7 +1,5 @@
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-//import java.util.ArrayList;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.Vector;
@@ -18,7 +16,6 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
 // Broadcast Feature Branch
@@ -299,3 +296,4 @@ public class MessengerApp extends Application implements Observer {
 	}
 	
 }
+
