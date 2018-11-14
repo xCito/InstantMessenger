@@ -288,4 +288,14 @@ public class MessengerApp extends Application implements Observer {
 		return packet.matches("\\w+\\d:.*");
 	}
 	
+	public void handleIncomingBroadcastMessage(String msg) {
+		
+	}
+	
+	public void sendBroadcastMessage() {
+		String broadcastMsg = "????? name-of-other-person ##### your-name";
+		InetAddress netBroadcastAdd = getIpAddress("255.255.255.255");
+		socket.send( broadcastMsg, netBroadcastAdd, 64000);
+	}
+	
 }

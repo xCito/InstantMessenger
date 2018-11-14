@@ -29,6 +29,9 @@ public class QueryWindow {
 		TextField field2 = new TextField();
 		Button btn = new Button("Open Messenger App");
 		
+		field.setText("64000");	// Default port number
+		field2.requestFocus();
+		
 		btn.setOnAction( (e) -> { 
 			this.port = Integer.valueOf(field.getText()); 
 			this.name = field2.getText();
