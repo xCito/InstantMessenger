@@ -20,26 +20,20 @@ public class QueryWindow {
 	public void launch() {
 		Stage stage = new Stage();
 		VBox vbox = new VBox();
-		Label label = new Label("Choose Port for Messenger App: ");
-		Label label2 = new Label("Choose a nickname: ");
-		label.setId("qLabel");
+		Label label2 = new Label("Choose your name: ");
 		label2.setId("qLabel");
 		
-		TextField field = new TextField();		
 		TextField field2 = new TextField();
 		Button btn = new Button("Open Messenger App");
 		
-		field.setText("64000");	// Default port number
-		
 		btn.setOnAction( (e) -> { 
-			this.port = Integer.valueOf(field.getText()); 
 			this.name = field2.getText();
 			stage.close(); 
 		});
 		btn.setDefaultButton(true);
 		btn.setId("queryButton");
 		
-		vbox.getChildren().addAll(label, field, label2, field2, btn);
+		vbox.getChildren().addAll(label2, field2, btn);
 		vbox.setAlignment(Pos.CENTER);
 		vbox.getStylesheets().add("style.css");
 		

@@ -30,6 +30,7 @@ public class ChatWindow extends Observable {
 	private static int instanceCount = 0;	// Used to help Identify which instance 
 	private int curInstanceCount;			// of chat Window to forward incoming messages to
 		
+	private Stage stage;			// UI stuff
 	private BorderPane root;		// UI stuff
 	private Button sendBtn;			// UI stuff
 	private TextField textF;		// UI stuff
@@ -37,29 +38,25 @@ public class ChatWindow extends Observable {
 	private Label label;			// UI stuff
 	private ImageView imgView;		// UI stuff
 	
-	private String id;				// Chat owner's ID
 	private String name;			// Chat owner's Username
 	
-	private String destID;			// Recipient's ID
+	private String destName;		// Recipient's ID
 	private InetAddress destIP;		// Recipient's IP address
 	private int destPort;			// Recipient's Port number
 	
-	private boolean requesting;		// True if waiting for a response to a name request 
+	//private boolean requesting;		// True if waiting for a response to a name request 
 	private boolean isOpen;			// True if the chat window is open
-	private boolean internalComm;	// True if the ChatWindow is chatting with another ChatWindow
+	//private boolean internalComm;	// True if the ChatWindow is chatting with another ChatWindow
 	private boolean darkTheme;
 	
 	public ChatWindow( String username, InetAddress srcIP, int srcPort ) {
 		curInstanceCount = instanceCount++;
-		destID = "Unknown";
-		internalComm = false;
+		destName = "Unknown";
 		darkTheme = false;
 		this.name = username;
-		this.requesting = false;
 		this.isOpen = false;
 		
 		createView();
-		createID();
 	}
 
 // Chat Window core functions
@@ -67,7 +64,7 @@ public class ChatWindow extends Observable {
 	 * Launches Chat Window
 	 */
 	public void openNewChatWindow() {
-		Stage stage = new Stage();
+		stage = new Stage();
 		Scene scene = new Scene( root );
 		scene.getStylesheets().add("style.css");
 		stage.setScene(scene);
@@ -101,7 +98,7 @@ public class ChatWindow extends Observable {
 		textA.setFocusTraversable(false);
 		textF = new TextField();
 		sendBtn = new Button("send");
-		label = new Label( "To " + destID );
+		label = new Label( "To " + destName );
 		
 		
 		label.setId("otherNameLabel");
@@ -143,11 +140,7 @@ public class ChatWindow extends Observable {
 			return;
 		
 		setChanged();
-		
-		if(internalComm)
-			notifyObservers(id+":"+msg);	// Notify "main" message is going to be sent
-		else
-			notifyObservers(msg);
+		notifyObservers(msg);
 		
 		ownerAppendToMessageHistory(msg);	
 	}
@@ -160,14 +153,7 @@ public class ChatWindow extends Observable {
 		Platform.runLater(() -> textA.appendText("Me: "+msg + "\n"));
 	}
 	public void otherAppendToMessageHistory(String msg) {
-		Platform.runLater(() -> textA.appendText( destID.substring(0, destID.length()-1)+": "+msg + "\n"));
-	}
-	
-	/**
-	 * Constructs chat owner's ID
-	 */
-	private void createID() {
-		id = name+""+curInstanceCount;
+		Platform.runLater(() -> textA.appendText( destName + ": "+ msg + "\n"));
 	}
 	
 	private void toggleTheme() {
@@ -190,37 +176,6 @@ public class ChatWindow extends Observable {
 			
 			darkTheme = true;
 		}
-	}
-// NAME REQUESTS AND RESPONSES
-	/**
-	 * Sends message (request) to the other user asking for their name
-	 */
-	public void sendNameRequest() {
-		String msg = id+":NAME_REQUEST";
-		requesting = true;
-		setChanged();
-		notifyObservers(msg);
-		System.out.println(name + "init NR--" + System.currentTimeMillis());
-	}
-	
-	/**
-	 * Sends message (response) to other user asking for this user's name
-	 */
-	public void sendNameResponse() {
-		System.out.println(name + "--N RES");
-		setChanged();
-		notifyObservers(id+":NAME_RESPONSE="+id);
-	}
-	
-	/**
-	 * Accept the incoming name response from other user
-	 * @param name
-	 */
-	public void acceptNameResponse(String name) {
-		destID = name;
-		Platform.runLater( () -> label.setText("To " + destID.substring(0, destID.length()-1) ));
-		requesting = false;
-		internalComm = true;
 	}
 	
 
@@ -255,44 +210,28 @@ public class ChatWindow extends Observable {
 	 * @return identifier composed of name,number,ip, port
 	 *         of other user.
 	 */
-	public String getDestinationID() {
-		return destID;
+	public String getDestinationName() {
+		return destName;
 	}
 	
 // ------------------------------ SETTERS ------------------------------ //
-	
-	public void isInternalCommunication( boolean internal ) {
-		internalComm = internal;
-	}
-	/**
-	 * Set the destination IP address and port to where 
-	 * messages will be sent.
-	 * @param destIP   - IP address of destination
-	 * @param destPort - Port number of destination
-	 */
-	public void setDestination( InetAddress destIP, int destPort) {
-		this.destIP = destIP;
-		this.destPort = destPort;
-		setDestinationID( destIP.getHostAddress() +"  |  "+ destPort + " " );
-	}
-	
+
 	
 	/**
 	 * Sets the other user's ID/Name
 	 * @param senderID
 	 */
-	public void setDestinationID(String senderID) {
-		destID = senderID;
-		String displayName = destID.substring(0, destID.length()-1);
-		Platform.runLater( () -> label.setText("To " + displayName));
+	public void setDestinationName(String name) {
+		destName = name;
+		Platform.runLater(() -> stage.setTitle(destName + " | " + destIP));
+	}
+	
+	public void setDestination(InetAddress add, int port) {
+		destIP = add;
+		destPort = port;
 	}
 
 	public boolean isOpen() {
 		return isOpen;
 	}
-
-	public boolean isRequesting() {
-		return requesting;
-	}
-
 }

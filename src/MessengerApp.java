@@ -1,8 +1,14 @@
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
 import java.util.Vector;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -21,10 +27,8 @@ import javafx.stage.Stage;
 // Broadcast Feature Branch
 public class MessengerApp extends Application implements Observer {
 
-	Vector<ChatWindow> list = new Vector<>();
-	
-	TextField destIPF;
-	TextField destPortF;
+	HashMap<String,ChatWindow> lookUpTable;
+	TextField destNameField;
 	String username;
 	
 	InetAddress add;
@@ -33,11 +37,12 @@ public class MessengerApp extends Application implements Observer {
 	
 	public MessengerApp() {
 		System.out.println("Messenger Instantiated");
+		lookUpTable = new HashMap<>();
 		
 		QueryWindow query = new QueryWindow();
 		query.launch();		// Blocking call
 		this.username = query.getName();
-		this.port     = query.getPort();
+		this.port     = 64000; //query.getPort();
 		
 		socket = new Socket(port);
 		socket.addObserver(this);
@@ -52,7 +57,7 @@ public class MessengerApp extends Application implements Observer {
 		primaryStage.setScene( scene );
 		primaryStage.setTitle("Messenger Thing");
 		primaryStage.setHeight(325);
-		primaryStage.setWidth(355);
+		primaryStage.setWidth(335);
 		primaryStage.getIcons().add(new Image("LetterM.png"));
 		primaryStage.show();
 		
@@ -87,7 +92,7 @@ public class MessengerApp extends Application implements Observer {
 	 * Constructs the UI for Messenger App, Menu?
 	 * @return Scene object with UI components
 	 */
-	private Scene getNewConversationScene() {
+	private Scene getNewConversationScene() { 
 		BorderPane border = new BorderPane();
 		GridPane grid = new GridPane();
 		VBox vbox = new VBox();
@@ -101,10 +106,8 @@ public class MessengerApp extends Application implements Observer {
 		
 		vbox.getChildren().addAll(user, infoIP, infoPort);
 		
-		Label destIPLabel = new Label("Enter IP Address: ");
-		Label destPortLabel = new Label("Enter Port: ");
-		destIPF = new TextField();
-		destPortF = new TextField();
+		Label destIPLabel = new Label("Enter Name: ");
+		destNameField = new TextField();
 		HBox hbox = new HBox();
 		
 		Button startChatBtn = new Button("Start Chatting");
@@ -113,19 +116,8 @@ public class MessengerApp extends Application implements Observer {
 		startChatBtn.setId("startCWButton");
 		startChatBtn.setDefaultButton(true);
 		startChatBtn.setOnAction( e -> { 
-			
-			String destip = destIPF.getText();
-			int destPort = Integer.valueOf(destPortF.getText());
-			
-			ChatWindow cw = new ChatWindow(username, getIpAddress("localhost"), port);
-			cw.setDestination( getIpAddress(destip), destPort );
-			cw.addObserver(this);
-			list.add(cw);
-			
-			cw.sendNameRequest();
-			//cw.setRecipientID();		// NAME REQUEST NEEDED!
-			cw.openNewChatWindow();
-			
+			String destName = destNameField.getText();
+			broadcastMessage(destName);
 		});
 		
 		
@@ -133,19 +125,17 @@ public class MessengerApp extends Application implements Observer {
 		hbox.setAlignment(Pos.BASELINE_CENTER);
 		
 		grid.add(destIPLabel, 	0, 	1);
-		grid.add(destPortLabel, 0,  2);
-		grid.add(destIPF, 		1, 	1);
-		grid.add(destPortF, 	1, 	2);
-		grid.add(hbox, 			0, 	3,	2,	1);
+		grid.add(destNameField,	1, 	1);
+		grid.add(hbox, 			0, 	2,	2,	1);
 		grid.setVgap(10);
 		grid.setHgap(6);
 		
 		border.setCenter(grid);
-		//BorderPane.setAlignment(grid, Pos.CENTER);
 		border.setTop(vbox);
 		return new Scene(border);
 	}
-
+	
+	// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	
 	/**
 	 * UPDATED BY OBSERVABLE OBJECTS, like ChatWindows and Sockets.
@@ -159,7 +149,7 @@ public class MessengerApp extends Application implements Observer {
 	 *       > If message doesn't belong to any existing messages
 	 *           - Start new ChatWindow and send message there.
 	 */
-	@Override
+	 @Override
 	public void update(Observable o, Object data) {
 	
 		if( o instanceof ChatWindow) {
@@ -169,7 +159,8 @@ public class MessengerApp extends Application implements Observer {
 			
 			// Remove this Chat Window from list of activeChats
 			if(message.equals("CLOSED")) {
-				list.remove(chat);
+				//list.remove(chat);
+				lookUpTable.remove( chat.getIP().getHostAddress()+chat.getPort() );
 				return;
 			}
 			
@@ -183,116 +174,123 @@ public class MessengerApp extends Application implements Observer {
 		{
 			System.out.println("Incoming Message");
 			String[] packet = (String[])data; 
-			boolean internal;
 			
 			String senderIP 	= packet[0];
 			String senderPort	= packet[1];
-			String senderName = "_";
 			String senderMsg = packet[2];
 			
-			internal = fromOtherMessengerApp(packet[2]+":");
-			
-			if( internal ) {
-				System.out.println("INTERNAL MESSAGE RECEIVED");
-				senderName	= packet[2].substring(0, packet[2].indexOf(':'));
-				senderMsg	= packet[2].substring(packet[2].indexOf(':')+1);
-				
-				// Handle Name Responses by forwarding responses to the Chat that had sent requests
-				if( senderMsg.substring(0, 13).contains("NAME_RESPONSE") ) {
-					for( ChatWindow cw: list ) {
-						if(cw.isRequesting()) {
-							cw.acceptNameResponse(senderName);
-							return;
-						}
-					}
-				}
-				
-				// Check if incoming message is for an active chat
-				if( passMessageToActiveChat( senderName, senderMsg ) )
-					return;
-				
-				// If message is not for one of the active chats...
-				// Its a New Message from another user!
-				System.out.println("New Message! From " + senderName);
+			for(String str: packet) {
+				System.out.println("\t-->" + str);
+			}
+			// Check if incoming message is a broadcasted request
+			if(isBroadcastRequest( senderMsg )) {
+				handleBroadcastRequest(senderMsg, senderIP);
 				ChatWindow cw = new ChatWindow(username, getIpAddress("localhost"), port);
 				cw.addObserver(this);
-				list.add(cw);
 				cw.setDestination(getIpAddress(senderIP), Integer.valueOf(senderPort));
-				cw.setDestinationID(senderName);
+				cw.setDestinationName( getName( senderMsg ) );
 				
-				// If New Message is a name request, reply with name response
-				// and Dont open chat window yet..
-				if ( senderMsg.substring(0,12).contains("NAME_REQUEST") ) {
-					cw.sendNameResponse();
-					return;
-				}
-				
-			} else {
-				System.out.println("OUTSIDER MESSAGE RECEIVED");
-				for(ChatWindow cw: list) {
-					if( cw.getIPString().equals(senderIP) && cw.getPort() == Integer.valueOf(senderPort)) {
-						cw.otherAppendToMessageHistory(senderMsg);
-						return;
-					}
-				}
-				
-				ChatWindow cw = new ChatWindow(username, getIpAddress("localhost"), port);
-				cw.addObserver(this);
-				list.add(cw);
-				cw.setDestination(getIpAddress(senderIP), Integer.valueOf(senderPort));
-				cw.otherAppendToMessageHistory(senderMsg);
-				cw.isInternalCommunication(false);
-				
-				Platform.runLater( () -> cw.openNewChatWindow());
-		
+				lookUpTable.put(senderIP+senderPort, cw);
+				return;
 			}
 			
+			// Check if incoming message is a broadcast response
+			if(isBroadcastResponse(senderMsg)) {
+				List<String> nameAndIP = getNameAndIP(senderMsg);
+				ChatWindow cw = new ChatWindow(username, getIpAddress("localhost"), port);
+				cw.addObserver(this);
+				cw.setDestination(getIpAddress(nameAndIP.get(1)), 64000);
+				cw.setDestinationName(nameAndIP.get(0));
+				
+				lookUpTable.put(nameAndIP.get(1)+64000, cw);
+				Platform.runLater( () -> cw.openNewChatWindow());
+				return;
+			}
+			
+			// Check if I have received message from this sender
+			ChatWindow cw = lookUpTable.get(senderIP+senderPort);
+			if(cw != null) 	{// True, If in my lookUpTable
+				if(!cw.isOpen())
+					Platform.runLater(()-> cw.openNewChatWindow());
+				
+				cw.otherAppendToMessageHistory(senderMsg);
+				return;
+			}
+			
+			// v v v v v v v v v v SHOULD NOT REACH HERE v v v v v v v v v v
+			
+			// Not in my lookUpTable -> Message from a new sender
+			ChatWindow temp = new ChatWindow(username, getIpAddress("localhost"), port);
+			temp.addObserver(this);
+			temp.setDestination(getIpAddress(senderIP), Integer.valueOf(senderPort));
+			temp.otherAppendToMessageHistory(senderMsg);
+			lookUpTable.put(senderIP+senderPort, temp);
+			
+			Platform.runLater( () -> temp.openNewChatWindow());
 		}
-		
-	
 	}
 	
 	/**
-	 * Search for an existing chat window who is conversating with
-	 * senderID.
-	 * If not found,  return false.
-	 * @param senderID
-	 * @param msgBody
-	 * @return
+	 * Checks if the incoming message has a REQUEST pattern.
+	 * @param msg
+	 * @return true - If message has the pattern of a REQUEST
+	 *        false - Message doesnt have pattern of a REQUEST 
 	 */
-	public boolean passMessageToActiveChat(String senderID, String msgBody) {
-		for(ChatWindow cw: list) {
-			System.out.println("checking.." + senderID + " == " + cw.getDestinationID());
-			if( senderID.equals( cw.getDestinationID() )) {
-				cw.otherAppendToMessageHistory(msgBody);
-				
-				if(!cw.isOpen())
-					Platform.runLater( () -> cw.openNewChatWindow());
-				
-				return true;
-			}
+	public boolean handleBroadcastRequest(String requestMsg, String srcIp) {
 		
+		if(requestMsg.contains(username)) {
+			String resp = getResponse();
+			socket.send(resp, getIpAddress(srcIp), 64000);
+			return true;
 		}
+		
 		return false;
 	}
 	
-
-	public boolean fromOtherMessengerApp(String packet) {
-		System.out.println("Yerrr");
-		System.out.println( packet + " ---> regex check: " + packet.matches("\\w+\\d:.*"));
-		System.out.println( packet );
-		System.out.println( "regex check: " + packet.matches("\\w+\\d:.*"));
-		return packet.matches("\\w+\\d:.*");
-	}
-	
-	public void handleIncomingBroadcastMessage(String msg) {
+	public List<String> getNameAndIP(String respMsg) {
+		String regexPatt = "^[#]{5}\\s(.*)\\s[#]{5}\\s(.*)$";
+		Pattern patt = Pattern.compile(regexPatt);
+		Matcher match = patt.matcher( respMsg );
+		String name = "";
+		String ip = "";
+		while(match.find()) {
+			name = match.group(1);
+			ip	 = match.group(2);
+		}
 		
+		return Arrays.asList(name,ip);
 	}
 	
-	public void sendBroadcastMessage() {
-		String broadcastMsg = "????? name-of-other-person ##### your-name";
+	public String getName(String reqMsg) {
+		String regexPatt = "^[\\?]{5}\\s(.*)\\s[#]{5}\\s(.*)$";
+		Pattern patt = Pattern.compile(regexPatt);
+		Matcher match = patt.matcher( reqMsg );
+		String name = "";
+		while(match.find()) {
+			name = match.group(2);
+		}
+		
+		return name;
+	}
+	
+	public boolean isBroadcastRequest(String msg) {
+		String regexPatt = "^[\\?]{5}\\s.*\\s[#]{5}\\s.*$";
+		return msg.matches(regexPatt);
+	}
+	
+	public boolean isBroadcastResponse(String msg) {
+		String regexPatt = "^[#]{5}\\s.*\\s[#]{5}\\s.*$";
+		return msg.matches(regexPatt);
+	}
+	
+	public void broadcastMessage(String otherName) {
+		String broadcastMsg = "????? " +otherName+ " ##### " +username;
 		InetAddress netBroadcastAdd = getIpAddress("255.255.255.255");
 		socket.send( broadcastMsg, netBroadcastAdd, 64000);
+	}
+	
+	public String getResponse() {
+		return "##### " +username+ " ##### " + getIpAddress("localhost").getHostAddress();
 	}
 	
 }
