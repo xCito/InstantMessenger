@@ -55,7 +55,7 @@ public class ChatWindow extends Observable {
 		darkTheme = false;
 		this.name = username;
 		this.isOpen = false;
-		
+		Platform.runLater( () -> stage = new Stage());
 		createView();
 	}
 
@@ -64,7 +64,6 @@ public class ChatWindow extends Observable {
 	 * Launches Chat Window
 	 */
 	public void openNewChatWindow() {
-		stage = new Stage();
 		Scene scene = new Scene( root );
 		scene.getStylesheets().add("style.css");
 		stage.setScene(scene);

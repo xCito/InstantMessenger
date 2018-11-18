@@ -34,15 +34,17 @@ public class Socket extends Observable{
 	}
 	
 	
-	public void send( String data, InetAddress destAdd, int destPort ) {
-		
+	public void send( String data, InetAddress destAdd, int destPort, boolean broadcast ) {
 		byte[] buff = data.getBytes();
-		DatagramPacket packetOut = new DatagramPacket(buff, buff.length);
-		packetOut.setAddress( destAdd );
-		packetOut.setPort( destPort );
+		DatagramPacket packetOut = new DatagramPacket(buff, buff.length, destAdd, destPort);
+		//packetOut.setAddress( destAdd );
+		//packetOut.setPort( destPort );
 		
 		try {
+			socket.setBroadcast(broadcast);
 			socket.send(packetOut);
+			//socket.close();
+			
 		} 
 		catch (IOException e) {
 			System.out.println("cant send...");
@@ -50,6 +52,19 @@ public class Socket extends Observable{
 		}
 	}
 	
+    public void broadcast( String broadcastMessage, InetAddress address) throws IOException {
+        DatagramSocket sock = new DatagramSocket();
+        sock.setBroadcast(true);
+ 
+        byte[] buffer = broadcastMessage.getBytes();
+ 
+        DatagramPacket packet 
+          = new DatagramPacket(buffer, buffer.length, address, 64000);
+        sock.send(packet);
+        sock.close();
+    }
+    
+    
 	protected void receiveData() {
 		byte[] buffer = new byte[2048];
 		DatagramPacket packetIn = new DatagramPacket(buffer, buffer.length);
@@ -79,6 +94,9 @@ public class Socket extends Observable{
 			// Clear the buffer
 			for(int i=0; i<buffer.length; ++i)
 				buffer[i] = 0;
+			
+			socket.close();
+			break;
 		}
 		
 	}

@@ -118,6 +118,7 @@ public class MessengerApp extends Application implements Observer {
 		startChatBtn.setOnAction( e -> { 
 			String destName = destNameField.getText();
 			broadcastMessage(destName);
+			System.out.println("sent! a broadcast!");
 		});
 		
 		
@@ -166,7 +167,7 @@ public class MessengerApp extends Application implements Observer {
 			
 			// For Outgoing Messages
 			System.out.println("outgoing: " + message);
-			socket.send( message , chat.getIP(), chat.getPort());
+			socket.send( message , chat.getIP(), chat.getPort(), false);
 		}
 		
 		// For Incoming Messages
@@ -184,6 +185,7 @@ public class MessengerApp extends Application implements Observer {
 			}
 			// Check if incoming message is a broadcasted request
 			if(isBroadcastRequest( senderMsg )) {
+				System.out.println("RECEIVED BROADCAST REQUEST!!!!");
 				handleBroadcastRequest(senderMsg, senderIP);
 				ChatWindow cw = new ChatWindow(username, getIpAddress("localhost"), port);
 				cw.addObserver(this);
@@ -196,6 +198,7 @@ public class MessengerApp extends Application implements Observer {
 			
 			// Check if incoming message is a broadcast response
 			if(isBroadcastResponse(senderMsg)) {
+				System.out.println("RECEIVED BROADCAST resPONSE !!!!");
 				List<String> nameAndIP = getNameAndIP(senderMsg);
 				ChatWindow cw = new ChatWindow(username, getIpAddress("localhost"), port);
 				cw.addObserver(this);
@@ -240,10 +243,10 @@ public class MessengerApp extends Application implements Observer {
 		
 		if(requestMsg.contains(username)) {
 			String resp = getResponse();
-			socket.send(resp, getIpAddress(srcIp), 64000);
+			socket.send(resp, getIpAddress(srcIp), 64000, false);
 			return true;
 		}
-		
+		System.out.println("Broadcast not for me");
 		return false;
 	}
 	
@@ -284,9 +287,16 @@ public class MessengerApp extends Application implements Observer {
 	}
 	
 	public void broadcastMessage(String otherName) {
-		String broadcastMsg = "????? " +otherName+ " ##### " +username;
+		
+		String broadcastMsg = "????? " +otherName+ " ##### " +username;		
 		InetAddress netBroadcastAdd = getIpAddress("255.255.255.255");
-		socket.send( broadcastMsg, netBroadcastAdd, 64000);
+
+		try {
+			socket.broadcast(broadcastMsg, netBroadcastAdd);
+		}
+		catch(Exception e) {
+			System.out.println("NOPE");
+		}		
 	}
 	
 	public String getResponse() {
