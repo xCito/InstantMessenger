@@ -1,22 +1,22 @@
 
 
 cwBackground {
-	-fx-background-color: #008000;
+	-fx-background-color: #033f14;
 }
 
 #queryButton {
 	-fx-padding: 20px 40px 20px 40px;
 	-fx-background-radius: 0,0,0,0;
-	-fx-background-color: #171821;
-	-fx-text-fill: #00f2ff;
-	-fx-border-color: #009191;
+	-fx-background-color: #012309;
+	-fx-text-fill: #05ff4b;
+	-fx-border-color: #05ff4b;
 }
 
 #startCWButton {
 	-fx-background-radius: 0,0,0,0;
-	-fx-background-color: #171821;
-	-fx-text-fill: #00f2ff;
-	-fx-border-color: #009191;
+	-fx-background-color: #012309;
+	-fx-text-fill: #05ff4b;
+	-fx-border-color: #05ff4b;
 	-fx-font-weight: lighter;	
 }
 
@@ -50,11 +50,11 @@ cwBackground {
 /* DARK THEME */
 #chatWindowDarkBP {
 	-fx-padding: 5px;
-	-fx-background-color: #151b26;
+	-fx-background-color: #001405;
 }
 #textAreaDark {
 	-fx-control-inner-background: #3f444c;
- 	-fx-background-color:#009191;
+ 	-fx-background-color:#05ff4b;
 	-fx-text-fill: white;
 	
 	-fx-highlight-fill: gray;
@@ -72,13 +72,13 @@ cwBackground {
 	-fx-highlight-fill: gray;
 	-fx-highlight-text-fill: white;	
 	-fx-background-radius: 0, 0, 0, 0;
-	-fx-border-color: #009191;
+	-fx-border-color: #05ff4b;
 }
 #sendButtonDark {
 	-fx-background-radius: 0,0,0,0;
-	-fx-background-color: #171821;
-	-fx-text-fill: #00f2ff;
-	-fx-border-color: #009191;
+	-fx-background-color: #001405;
+	-fx-text-fill: #05ff4b;
+	-fx-border-color: #05ff4b;
 }
 
 TextField {
@@ -87,7 +87,7 @@ TextField {
 	-fx-highlight-fill: gray;
 	-fx-highlight-text-fill: white;	
 	-fx-background-radius: 0, 0, 0, 0;
-	-fx-border-color: #009191;
+	-fx-border-color: #05ff4b;
 }
 HBox {
 	-fx-padding: 10px 0px 10px 0px;	
@@ -97,24 +97,24 @@ HBox {
 .label {
 	-fx-font-family: sans-serif;
 	-fx-font-weight: lighter; 
-	-fx-text-fill: #00f2ff;
+	-fx-text-fill: #05ff4b;
 }
 
 BorderPane {
-	-fx-background-color: #151b26;	
+	-fx-background-color: #011606;	
 	-fx-padding: 10px;
 }
 
 VBox {
 	-fx-spacing: 5px;
-	-fx-background-color: #151b26;
+	-fx-background-color: #011606;
 	-fx-padding: 8px;
 }
 
 #qLabel {
 	-fx-font-size: 1.2em;
 	-fx-font-family: sans-serif;
-	-fx-text-fill: #00f2ff;
+	-fx-text-fill: #05ff4b;
 	-fx-font-weight: lighter; 
 }
 
