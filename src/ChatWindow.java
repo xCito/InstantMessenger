@@ -141,7 +141,7 @@ public class ChatWindow extends Observable {
 		setChanged();
 		notifyObservers(msg);
 		
-		ownerAppendToMessageHistory(msg);	
+		ownerAppendToMessageHistory(msg);
 	}
 	
 	/**
@@ -222,7 +222,7 @@ public class ChatWindow extends Observable {
 	 */
 	public void setDestinationName(String name) {
 		destName = name;
-		Platform.runLater(() -> stage.setTitle(destName + " | " + destIP));
+		Platform.runLater(() -> stage.setTitle(name + " | " + destIP));
 	}
 	
 	public void setDestination(InetAddress add, int port) {

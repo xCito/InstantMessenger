@@ -34,17 +34,13 @@ public class Socket extends Observable{
 	}
 	
 	
-	public void send( String data, InetAddress destAdd, int destPort, boolean broadcast ) {
+	public void send( String data, InetAddress destAdd, int destPort) {
 		byte[] buff = data.getBytes();
 		DatagramPacket packetOut = new DatagramPacket(buff, buff.length, destAdd, destPort);
-		//packetOut.setAddress( destAdd );
-		//packetOut.setPort( destPort );
-		
+
 		try {
-			socket.setBroadcast(broadcast);
 			socket.send(packetOut);
-			//socket.close();
-			
+		
 		} 
 		catch (IOException e) {
 			System.out.println("cant send...");
@@ -53,15 +49,15 @@ public class Socket extends Observable{
 	}
 	
     public void broadcast( String broadcastMessage, InetAddress address) throws IOException {
-        DatagramSocket sock = new DatagramSocket();
-        sock.setBroadcast(true);
+        DatagramSocket socket = new DatagramSocket();
+        socket.setBroadcast(true);
  
         byte[] buffer = broadcastMessage.getBytes();
  
         DatagramPacket packet 
           = new DatagramPacket(buffer, buffer.length, address, 64000);
-        sock.send(packet);
-        sock.close();
+        socket.send(packet);
+        //socket.close();
     }
     
     
@@ -71,10 +67,12 @@ public class Socket extends Observable{
 		while(true) {
 			try {
 				// wait for incoming messages
+				System.out.println("Waiting.....");
 				socket.receive(packetIn);
 				
 				String data = new String(packetIn.getData());
-
+				System.out.println("----->" + data);
+				
 				// "emit" and event when message received
 				String[] packet = new String[3];
 				packet[0] = packetIn.getAddress().getHostAddress();
@@ -95,8 +93,9 @@ public class Socket extends Observable{
 			for(int i=0; i<buffer.length; ++i)
 				buffer[i] = 0;
 			
-			socket.close();
-			break;
+			//socket.close();
+			System.out.println(socket.isClosed());
+			//break;
 		}
 		
 	}

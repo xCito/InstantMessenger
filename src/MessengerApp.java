@@ -2,11 +2,9 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Observable;
 import java.util.Observer;
-import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -167,7 +165,7 @@ public class MessengerApp extends Application implements Observer {
 			
 			// For Outgoing Messages
 			System.out.println("outgoing: " + message);
-			socket.send( message , chat.getIP(), chat.getPort(), false);
+			socket.send( message , chat.getIP(), chat.getPort());
 		}
 		
 		// For Incoming Messages
@@ -185,33 +183,39 @@ public class MessengerApp extends Application implements Observer {
 			}
 			// Check if incoming message is a broadcasted request
 			if(isBroadcastRequest( senderMsg )) {
-				System.out.println("RECEIVED BROADCAST REQUEST!!!!");
-				handleBroadcastRequest(senderMsg, senderIP);
-				ChatWindow cw = new ChatWindow(username, getIpAddress("localhost"), port);
-				cw.addObserver(this);
-				cw.setDestination(getIpAddress(senderIP), Integer.valueOf(senderPort));
-				cw.setDestinationName( getName( senderMsg ) );
-				
-				lookUpTable.put(senderIP+senderPort, cw);
+				System.out.println("\t\tReceived a Broadcast Request!");
+				boolean isForMe = handleBroadcastRequest(senderMsg, senderIP);
+				if( isForMe ) {
+					ChatWindow cw = new ChatWindow(username, getIpAddress("localhost"), port);
+					cw.addObserver(this);
+					cw.setDestination(getIpAddress(senderIP), Integer.valueOf(senderPort));
+					cw.setDestinationName( getName( senderMsg ) );
+					
+					lookUpTable.put(senderIP+64000, cw);
+				}
 				return;
 			}
-			
+
 			// Check if incoming message is a broadcast response
 			if(isBroadcastResponse(senderMsg)) {
-				System.out.println("RECEIVED BROADCAST resPONSE !!!!");
+				System.out.println("\\t\\tReceived a Broadcast Response!");
 				List<String> nameAndIP = getNameAndIP(senderMsg);
+				String name = nameAndIP.get(0);
+				String ip = nameAndIP.get(1);
+				
 				ChatWindow cw = new ChatWindow(username, getIpAddress("localhost"), port);
 				cw.addObserver(this);
-				cw.setDestination(getIpAddress(nameAndIP.get(1)), 64000);
-				cw.setDestinationName(nameAndIP.get(0));
+				cw.setDestination(getIpAddress(ip), 64000);
+				cw.setDestinationName(name);
 				
-				lookUpTable.put(nameAndIP.get(1)+64000, cw);
+				lookUpTable.put(ip+64000, cw);
 				Platform.runLater( () -> cw.openNewChatWindow());
 				return;
 			}
 			
+			System.out.println("\t\tNOT a broadcast Request or Response");
 			// Check if I have received message from this sender
-			ChatWindow cw = lookUpTable.get(senderIP+senderPort);
+			ChatWindow cw = lookUpTable.get(senderIP+64000);
 			if(cw != null) 	{// True, If in my lookUpTable
 				if(!cw.isOpen())
 					Platform.runLater(()-> cw.openNewChatWindow());
@@ -221,11 +225,11 @@ public class MessengerApp extends Application implements Observer {
 			}
 			
 			// v v v v v v v v v v SHOULD NOT REACH HERE v v v v v v v v v v
-			
+			System.out.println("v v v v v v v v v v SHOULD NOT REACH HERE v v v v v v v v v v");
 			// Not in my lookUpTable -> Message from a new sender
 			ChatWindow temp = new ChatWindow(username, getIpAddress("localhost"), port);
 			temp.addObserver(this);
-			temp.setDestination(getIpAddress(senderIP), Integer.valueOf(senderPort));
+			temp.setDestination(getIpAddress(senderIP), 64000/*Integer.valueOf(senderPort)*/);
 			temp.otherAppendToMessageHistory(senderMsg);
 			lookUpTable.put(senderIP+senderPort, temp);
 			
@@ -240,13 +244,21 @@ public class MessengerApp extends Application implements Observer {
 	 *        false - Message doesnt have pattern of a REQUEST 
 	 */
 	public boolean handleBroadcastRequest(String requestMsg, String srcIp) {
+		String regexPatt = "^[\\?]{5}\\s(.*)\\s[#]{5}\\s.*$";
+		Pattern patt = Pattern.compile(regexPatt);
+		Matcher match = patt.matcher( requestMsg );
+		String name = "";
+		if (match.find()) {
+			name = match.group(1);
+		}
 		
-		if(requestMsg.contains(username)) {
+		if(name.equals(username)) {
 			String resp = getResponse();
-			socket.send(resp, getIpAddress(srcIp), 64000, false);
+			socket.send(resp, getIpAddress(srcIp), 64000);
+			System.out.println("\t\tIs for me, Broadcast Response sent!");
 			return true;
 		}
-		System.out.println("Broadcast not for me");
+		System.out.println("\t\tBroadcast Request was not for me");
 		return false;
 	}
 	
