@@ -40,7 +40,6 @@ public class Socket extends Observable{
 
 		try {
 			socket.send(packetOut);
-		
 		} 
 		catch (IOException e) {
 			System.out.println("cant send...");

@@ -80,6 +80,7 @@ public class MessengerApp extends Application implements Observer {
 			return InetAddress.getByName(host);
 		} 
 		catch (UnknownHostException e) {
+			System.out.println("This is not a real IP: " + host);
 			e.printStackTrace();
 		}
 		return null;
@@ -119,9 +120,16 @@ public class MessengerApp extends Application implements Observer {
 			System.out.println("sent! a broadcast!");
 		});
 		
+		Button debug = new Button("Debug ARP Table");
+		debug.setOnAction( (e) -> {
+			displayTable();
+		});
+		
 		
 		hbox.getChildren().add(startChatBtn);
 		hbox.setAlignment(Pos.BASELINE_CENTER);
+		
+		hbox.getChildren().add(debug);
 		
 		grid.add(destIPLabel, 	0, 	1);
 		grid.add(destNameField,	1, 	1);
@@ -163,6 +171,7 @@ public class MessengerApp extends Application implements Observer {
 				return;
 			}
 			
+			
 			// For Outgoing Messages
 			System.out.println("outgoing: " + message);
 			socket.send( message , chat.getIP(), chat.getPort());
@@ -181,49 +190,76 @@ public class MessengerApp extends Application implements Observer {
 			for(String str: packet) {
 				System.out.println("\t-->" + str);
 			}
+			
 			// Check if incoming message is a broadcasted request
 			if(isBroadcastRequest( senderMsg )) {
 				System.out.println("\t\tReceived a Broadcast Request!");
 				boolean isForMe = handleBroadcastRequest(senderMsg, senderIP);
 				if( isForMe ) {
+					displayTable();
+					
+					String key = senderIP.concat(String.valueOf(64000));
+					
+					if( lookUpTable.containsKey(key)) {
+						System.out.println("That user already sent a broadcast request!!!");
+						System.out.println("CW already open for this user");
+						return;
+					}
+					
 					ChatWindow cw = new ChatWindow(username, getIpAddress("localhost"), port);
 					cw.addObserver(this);
 					cw.setDestination(getIpAddress(senderIP), Integer.valueOf(senderPort));
 					cw.setDestinationName( getName( senderMsg ) );
 					
-					lookUpTable.put(senderIP+64000, cw);
+					lookUpTable.put(key, cw);				//			<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 				}
 				return;
 			}
 
 			// Check if incoming message is a broadcast response
 			if(isBroadcastResponse(senderMsg)) {
-				System.out.println("\\t\\tReceived a Broadcast Response!");
+				System.out.println("\t\tReceived a Broadcast Response!");
 				List<String> nameAndIP = getNameAndIP(senderMsg);
 				String name = nameAndIP.get(0);
 				String ip = nameAndIP.get(1);
+				String key = senderIP.concat(String.valueOf(64000));
+				
+				if(lookUpTable.containsKey(key)) {
+					System.out.println("Already received a broadcast response from them!");
+					System.out.println("Ignore this second response b/c CW is already open for this user");
+					return;
+				}
 				
 				ChatWindow cw = new ChatWindow(username, getIpAddress("localhost"), port);
 				cw.addObserver(this);
 				cw.setDestination(getIpAddress(ip), 64000);
 				cw.setDestinationName(name);
+				if(!cw.isOpen()) {
+					Platform.runLater(()-> cw.openNewChatWindow());
+					cw.updateStageTitle();
+				}
 				
-				lookUpTable.put(ip+64000, cw);
-				Platform.runLater( () -> cw.openNewChatWindow());
+				lookUpTable.put(key, cw);						//			<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 				return;
 			}
 			
-			System.out.println("\t\tNOT a broadcast Request or Response");
+			// Message was not a REQUEST or RESPONSE, must be normal text message
 			// Check if I have received message from this sender
-			ChatWindow cw = lookUpTable.get(senderIP+64000);
+			
+			String key = senderIP.concat(String.valueOf(64000));
+			System.out.println("\t\tNOT a broadcast Request or Response");
+			
+			ChatWindow cw = lookUpTable.get(key);
 			if(cw != null) 	{// True, If in my lookUpTable
-				if(!cw.isOpen())
+				if(!cw.isOpen()) {
 					Platform.runLater(()-> cw.openNewChatWindow());
-				
+					cw.updateStageTitle();
+				}
 				cw.otherAppendToMessageHistory(senderMsg);
 				return;
 			}
 			
+			// If message received 
 			// v v v v v v v v v v SHOULD NOT REACH HERE v v v v v v v v v v
 			System.out.println("v v v v v v v v v v SHOULD NOT REACH HERE v v v v v v v v v v");
 			// Not in my lookUpTable -> Message from a new sender
@@ -231,7 +267,14 @@ public class MessengerApp extends Application implements Observer {
 			temp.addObserver(this);
 			temp.setDestination(getIpAddress(senderIP), 64000/*Integer.valueOf(senderPort)*/);
 			temp.otherAppendToMessageHistory(senderMsg);
-			lookUpTable.put(senderIP+senderPort, temp);
+			
+			
+			//String key = senderIP.concat(String.valueOf(64000));
+			if( lookUpTable.containsKey(key))
+				System.out.println("That user already sent a broadcast request!!!");
+			
+			
+			lookUpTable.put(key, temp);						//			<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 			
 			Platform.runLater( () -> temp.openNewChatWindow());
 		}
@@ -281,7 +324,7 @@ public class MessengerApp extends Application implements Observer {
 		Pattern patt = Pattern.compile(regexPatt);
 		Matcher match = patt.matcher( reqMsg );
 		String name = "";
-		while(match.find()) {
+		while( match.find() ) {
 			name = match.group(2);
 		}
 		
@@ -311,6 +354,14 @@ public class MessengerApp extends Application implements Observer {
 		}		
 	}
 	
+	public void displayTable() {
+		System.out.println(" v v v v v ");
+		for(String key: lookUpTable.keySet()) {
+			System.out.print("\t\t\t Key: " + key);
+			System.out.println("   Value: " + lookUpTable.get(key));
+		}
+		System.out.println(" ^ ^ ^ ^ ^ ");
+	}
 	public String getResponse() {
 		return "##### " +username+ " ##### " + getIpAddress("localhost").getHostAddress();
 	}

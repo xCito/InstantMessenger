@@ -76,8 +76,7 @@ public class ChatWindow extends Observable {
 		
 		// Let the "main" class know this ChatWindow is no longer active
 		stage.setOnCloseRequest( (e) -> {
-			setChanged();
-			notifyObservers("CLOSED");
+			closeWindow();
 		});
 	}
 	
@@ -222,7 +221,6 @@ public class ChatWindow extends Observable {
 	 */
 	public void setDestinationName(String name) {
 		destName = name;
-		Platform.runLater(() -> stage.setTitle(name + " | " + destIP));
 	}
 	
 	public void setDestination(InetAddress add, int port) {
@@ -230,7 +228,16 @@ public class ChatWindow extends Observable {
 		destPort = port;
 	}
 
+	public void updateStageTitle() {
+		Platform.runLater(() -> stage.setTitle(destName + " | " + destIP));
+	}
+	
 	public boolean isOpen() {
 		return isOpen;
+	}
+	
+	public void closeWindow() {
+		setChanged();
+		notifyObservers("CLOSED");
 	}
 }
