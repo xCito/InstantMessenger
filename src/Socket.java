@@ -52,9 +52,7 @@ public class Socket extends Observable{
         socket.setBroadcast(true);
  
         byte[] buffer = broadcastMessage.getBytes();
-        //String resp = "????? " + name + " ##### Sa"  
- 
-        	//	InetAddress.getByName("255.255.255.255")
+
         DatagramPacket packet 
           = new DatagramPacket(buffer, buffer.length, address, 64000);
         socket.send(packet);
