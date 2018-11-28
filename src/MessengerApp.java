@@ -129,7 +129,7 @@ public class MessengerApp extends Application implements Observer {
 		hbox.getChildren().add(startChatBtn);
 		hbox.setAlignment(Pos.BASELINE_CENTER);
 		
-		hbox.getChildren().add(debug);
+		//hbox.getChildren().add(debug);
 		
 		grid.add(destIPLabel, 	0, 	1);
 		grid.add(destNameField,	1, 	1);
