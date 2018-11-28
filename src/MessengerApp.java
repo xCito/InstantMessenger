@@ -167,7 +167,11 @@ public class MessengerApp extends Application implements Observer {
 			// Remove this Chat Window from list of activeChats
 			if(message.equals("CLOSED")) {
 				//list.remove(chat);
-				lookUpTable.remove( chat.getIP().getHostAddress()+chat.getPort() );
+				
+				System.out.println("Removing this chat from hashmap --->" + chat.getDestinationName());
+				
+				ChatWindow c = lookUpTable.remove( chat.getIP().getHostAddress()+chat.getPort() );
+				System.out.println("Removed: " + c.getDestinationName());
 				return;
 			}
 			
@@ -185,7 +189,7 @@ public class MessengerApp extends Application implements Observer {
 			
 			String senderIP 	= packet[0];
 			String senderPort	= packet[1];
-			String senderMsg = packet[2];
+			String senderMsg    = packet[2];
 			
 			for(String str: packet) {
 				System.out.println("\t-->" + str);
@@ -206,12 +210,21 @@ public class MessengerApp extends Application implements Observer {
 						return;
 					}
 					
+					System.out.println("New broadcast req");
 					ChatWindow cw = new ChatWindow(username, getIpAddress("localhost"), port);
 					cw.addObserver(this);
 					cw.setDestination(getIpAddress(senderIP), Integer.valueOf(senderPort));
 					cw.setDestinationName( getName( senderMsg ) );
 					
+					if(!cw.isOpen()) {
+						Platform.runLater(()-> cw.openNewChatWindow());
+						cw.updateStageTitle();
+					}
+					
 					lookUpTable.put(key, cw);				//			<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+				} else {
+					System.out.println("NOT MORE MEEEEEE");
+					return;
 				}
 				return;
 			}
@@ -224,6 +237,7 @@ public class MessengerApp extends Application implements Observer {
 				String ip = nameAndIP.get(1);
 				String key = senderIP.concat(String.valueOf(64000));
 				
+				// True, if chat window is already open for this IP 
 				if(lookUpTable.containsKey(key)) {
 					System.out.println("Already received a broadcast response from them!");
 					System.out.println("Ignore this second response b/c CW is already open for this user");
@@ -259,6 +273,15 @@ public class MessengerApp extends Application implements Observer {
 				return;
 			}
 			
+			if(senderMsg.contains("?????") && senderMsg.contains("#####")) {
+				System.out.println("DUB!");
+				return;
+			}
+			if(senderMsg.contains("#####")) {
+				System.out.println("DUB THAT TOO");
+				return;
+			}
+				
 			// If message received 
 			// v v v v v v v v v v SHOULD NOT REACH HERE v v v v v v v v v v
 			System.out.println("v v v v v v v v v v SHOULD NOT REACH HERE v v v v v v v v v v");
@@ -295,8 +318,9 @@ public class MessengerApp extends Application implements Observer {
 			name = match.group(1);
 		}
 		
-		if(name.equals(username)) {
+		if(name.toLowerCase().equals(username.toLowerCase())) {
 			String resp = getResponse();
+			System.out.println(">" + resp + "<");
 			socket.send(resp, getIpAddress(srcIp), 64000);
 			System.out.println("\t\tIs for me, Broadcast Response sent!");
 			return true;
@@ -332,12 +356,12 @@ public class MessengerApp extends Application implements Observer {
 	}
 	
 	public boolean isBroadcastRequest(String msg) {
-		String regexPatt = "^[\\?]{5}\\s.*\\s[#]{5}\\s.*$";
+		String regexPatt = "[\\?]{5}\\s.*\\s[#]{5}\\s.*";
 		return msg.matches(regexPatt);
 	}
 	
 	public boolean isBroadcastResponse(String msg) {
-		String regexPatt = "^[#]{5}\\s.*\\s[#]{5}\\s.*$";
+		String regexPatt = "[#]{5}\\s.*\\s[#]{5}\\s.*";
 		return msg.matches(regexPatt);
 	}
 	
@@ -357,8 +381,9 @@ public class MessengerApp extends Application implements Observer {
 	public void displayTable() {
 		System.out.println(" v v v v v ");
 		for(String key: lookUpTable.keySet()) {
-			System.out.print("\t\t\t Key: " + key);
-			System.out.println("   Value: " + lookUpTable.get(key));
+			System.out.println("\t\t\t Key: " + key);
+			System.out.println("\t\t\t Value: " + lookUpTable.get(key));
+			System.out.println("\t\t\t Name : " + lookUpTable.get(key).getDestinationName() + "\n");
 		}
 		System.out.println(" ^ ^ ^ ^ ^ ");
 	}

@@ -78,6 +78,8 @@ public class ChatWindow extends Observable {
 		stage.setOnCloseRequest( (e) -> {
 			closeWindow();
 		});
+		
+		System.out.println("Openning Window!" + destName);
 	}
 	
 	/**
@@ -230,6 +232,7 @@ public class ChatWindow extends Observable {
 
 	public void updateStageTitle() {
 		Platform.runLater(() -> stage.setTitle(destName + " | " + destIP));
+		Platform.runLater(() -> label.setText("To: " + destName));
 	}
 	
 	public boolean isOpen() {
