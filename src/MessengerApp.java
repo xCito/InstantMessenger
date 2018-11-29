@@ -129,7 +129,7 @@ public class MessengerApp extends Application implements Observer {
 		hbox.getChildren().add(startChatBtn);
 		hbox.setAlignment(Pos.BASELINE_CENTER);
 		
-		//hbox.getChildren().add(debug);
+		//hbox.getChildren().add(debug);			// Debug button	
 		
 		grid.add(destIPLabel, 	0, 	1);
 		grid.add(destNameField,	1, 	1);
@@ -164,10 +164,8 @@ public class MessengerApp extends Application implements Observer {
 			String message = (String)data;
 			ChatWindow chat = (ChatWindow)o;
 			
-			// Remove this Chat Window from list of activeChats
-			if(message.equals("CLOSED")) {
-				//list.remove(chat);
-				
+			// Remove this ChatWindow from HashMap of active chats
+			if(message.equals("__**CLOSED**__")) {
 				System.out.println("Removing this chat from hashmap --->" + chat.getDestinationName());
 				
 				ChatWindow c = lookUpTable.remove( chat.getIP().getHostAddress()+chat.getPort() );
@@ -184,34 +182,33 @@ public class MessengerApp extends Application implements Observer {
 		// For Incoming Messages
 		if( o instanceof Socket ) 
 		{
+		
 			System.out.println("Incoming Message");
 			String[] packet = (String[])data; 
 			
-			String senderIP 	= packet[0];
-			String senderPort	= packet[1];
-			String senderMsg    = packet[2];
+			String senderIP 	= packet[0];			// Contains IP Address of the incoming message
+			String senderPort	= packet[1];			// Contains the Port number of the incoming message
+			String senderMsg    = packet[2];			// Contains the message of the incoming message
 			
-			for(String str: packet) {
-				System.out.println("\t-->" + str);
-			}
+			//for(String str: packet) {					// Debugging
+			//	System.out.println("\t-->" + str);
+			//}
 			
-			// Check if incoming message is a broadcasted request
+			// Check IF incoming message is a broadcasted 'NAME REQUEST'
 			if(isBroadcastRequest( senderMsg )) {
-				System.out.println("\t\tReceived a Broadcast Request!");
+				
+				// Check if the 'Name Request is for me
 				boolean isForMe = handleBroadcastRequest(senderMsg, senderIP);
 				if( isForMe ) {
-					displayTable();
-					
 					String key = senderIP.concat(String.valueOf(64000));
 					
+					// Check if I have received a name request from this user already
 					if( lookUpTable.containsKey(key)) {
-						System.out.println("That user already sent a broadcast request!!!");
-						System.out.println("CW already open for this user");
-						return;
+						return;	// If yes, do nothing else.
 					}
 					
-					System.out.println("New broadcast req");
-					ChatWindow cw = new ChatWindow(username, getIpAddress("localhost"), port);
+					// I have received this 'Name Request' from them for the FIRST TIME
+					ChatWindow cw = new ChatWindow();
 					cw.addObserver(this);
 					cw.setDestination(getIpAddress(senderIP), Integer.valueOf(senderPort));
 					cw.setDestinationName( getName( senderMsg ) );
@@ -221,30 +218,31 @@ public class MessengerApp extends Application implements Observer {
 						cw.updateStageTitle();
 					}
 					
-					lookUpTable.put(key, cw);				//			<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-				} else {
-					System.out.println("NOT MORE MEEEEEE");
-					return;
-				}
-				return;
+					// Add to my lookUpTable for future reference
+					lookUpTable.put(key, cw);			
+					
+				} 
+				
+				// Name Request was not for me
+				return;	// do nothing.
 			}
 
-			// Check if incoming message is a broadcast response
+			
+			// Check if incoming message is a NAME RESPONSE
 			if(isBroadcastResponse(senderMsg)) {
-				System.out.println("\t\tReceived a Broadcast Response!");
+				
 				List<String> nameAndIP = getNameAndIP(senderMsg);
 				String name = nameAndIP.get(0);
 				String ip = nameAndIP.get(1);
 				String key = senderIP.concat(String.valueOf(64000));
 				
-				// True, if chat window is already open for this IP 
+				// Check if chat window is already open for this IP 
 				if(lookUpTable.containsKey(key)) {
-					System.out.println("Already received a broadcast response from them!");
-					System.out.println("Ignore this second response b/c CW is already open for this user");
-					return;
+					return;	// If yes, do nothing
 				}
 				
-				ChatWindow cw = new ChatWindow(username, getIpAddress("localhost"), port);
+				// Received a 'Name Response' for the FIRST TIME 
+				ChatWindow cw = new ChatWindow();
 				cw.addObserver(this);
 				cw.setDestination(getIpAddress(ip), 64000);
 				cw.setDestinationName(name);
@@ -253,26 +251,33 @@ public class MessengerApp extends Application implements Observer {
 					cw.updateStageTitle();
 				}
 				
-				lookUpTable.put(key, cw);						//			<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+				// Add to my lookUpTable for future reference
+				lookUpTable.put(key, cw);					
 				return;
 			}
+			
 			
 			// Message was not a REQUEST or RESPONSE, must be normal text message
 			// Check if I have received message from this sender
 			
 			String key = senderIP.concat(String.valueOf(64000));
-			System.out.println("\t\tNOT a broadcast Request or Response");
-			
+
 			ChatWindow cw = lookUpTable.get(key);
-			if(cw != null) 	{// True, If in my lookUpTable
+			
+			// Is this incoming message from a user I have in my lookUpTable already?
+			if(cw != null) 	{
 				if(!cw.isOpen()) {
 					Platform.runLater(()-> cw.openNewChatWindow());
 					cw.updateStageTitle();
 				}
+				
+				// Just append their message to the chat window
 				cw.otherAppendToMessageHistory(senderMsg);
 				return;
 			}
 			
+			
+			// Not sure why I wrote this...
 			if(senderMsg.contains("?????") && senderMsg.contains("#####")) {
 				System.out.println("DUB!");
 				return;
@@ -282,23 +287,21 @@ public class MessengerApp extends Application implements Observer {
 				return;
 			}
 				
-			// If message received 
-			// v v v v v v v v v v SHOULD NOT REACH HERE v v v v v v v v v v
-			System.out.println("v v v v v v v v v v SHOULD NOT REACH HERE v v v v v v v v v v");
+			
+			// If message received from someone whose not in my lookUpTable, 
+						// v v v v v v v v v v SHOULD NOT REACH HERE v v v v v v v v v v
+			
 			// Not in my lookUpTable -> Message from a new sender
-			ChatWindow temp = new ChatWindow(username, getIpAddress("localhost"), port);
+			ChatWindow temp = new ChatWindow();
 			temp.addObserver(this);
-			temp.setDestination(getIpAddress(senderIP), 64000/*Integer.valueOf(senderPort)*/);
+			temp.setDestination(getIpAddress(senderIP), 64000);
 			temp.otherAppendToMessageHistory(senderMsg);
 			
-			
-			//String key = senderIP.concat(String.valueOf(64000));
 			if( lookUpTable.containsKey(key))
 				System.out.println("That user already sent a broadcast request!!!");
 			
-			
-			lookUpTable.put(key, temp);						//			<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-			
+			// Add to my lookUpTable for future reference
+			lookUpTable.put(key, temp);						
 			Platform.runLater( () -> temp.openNewChatWindow());
 		}
 	}
@@ -329,6 +332,13 @@ public class MessengerApp extends Application implements Observer {
 		return false;
 	}
 	
+	
+	/**
+	 * Extracts the name and IP of a 'Name Response'. 
+	 * @param respMsg - a 'Name Response' message
+	 * @return - List Object containing the name in INDEX 0
+	 *                                      IP   in INDEX 1
+	 */
 	public List<String> getNameAndIP(String respMsg) {
 		String regexPatt = "^[#]{5}\\s(.*)\\s[#]{5}\\s(.*)$";
 		Pattern patt = Pattern.compile(regexPatt);
@@ -343,6 +353,11 @@ public class MessengerApp extends Application implements Observer {
 		return Arrays.asList(name,ip);
 	}
 	
+	/**
+	 * Extracts the name of the sender from a 'Name Request' message
+	 * @param reqMsg - 'Name Request' message
+	 * @return - The name of the other user requesting my name and IP.
+	 */
 	public String getName(String reqMsg) {
 		String regexPatt = "^[\\?]{5}\\s(.*)\\s[#]{5}\\s(.*)$";
 		Pattern patt = Pattern.compile(regexPatt);
@@ -355,21 +370,38 @@ public class MessengerApp extends Application implements Observer {
 		return name;
 	}
 	
+	/**
+	 * Checks if the incoming message contains pattern of a 'Name Request'
+	 * @param msg - The incoming message from DatagramSocket
+	 * @return True  - If the message matches the pattern of a 'Name Request'
+	 *         False - If the message doesn't 
+	 */
 	public boolean isBroadcastRequest(String msg) {
 		String regexPatt = "[\\?]{5}\\s.*\\s[#]{5}\\s.*";
 		return msg.matches(regexPatt);
 	}
 	
+	
+	/**
+	 * Checks if the incoming message contains pattern of a 'Name Response'
+	 * @param msg - The incoming message from DatagramSocket
+	 * @return True  - If the message matches the pattern of a 'Name Response'
+	 *         False - If the message doesn't 
+	 */
 	public boolean isBroadcastResponse(String msg) {
 		String regexPatt = "[#]{5}\\s.*\\s[#]{5}\\s.*";
 		return msg.matches(regexPatt);
 	}
 	
+	/**
+	 * Sends out a UDP broadcast message, a Name Request, to the network 
+	 * @param otherName - The person I am trying to reach on the network.
+	 */
 	public void broadcastMessage(String otherName) {
 		
-		String broadcastMsg = "????? " +otherName+ " ##### " +username;		
-		InetAddress netBroadcastAdd = getIpAddress("255.255.255.255");
-
+		String broadcastMsg = "????? " +otherName+ " ##### " +username;		// The Name Request
+		InetAddress netBroadcastAdd = getIpAddress("255.255.255.255");		// Broad on local network address
+		
 		try {
 			socket.broadcast(broadcastMsg, netBroadcastAdd);
 		}
@@ -378,6 +410,11 @@ public class MessengerApp extends Application implements Observer {
 		}		
 	}
 	
+	/**
+	 * Used to print out the contents of my HashMap. HashMap contains
+	 * all the references to the ChatWindows associated with IP, Port, and Name.
+	 * MAINLY FOR DEBUGGING
+	 */
 	public void displayTable() {
 		System.out.println(" v v v v v ");
 		for(String key: lookUpTable.keySet()) {
@@ -387,6 +424,12 @@ public class MessengerApp extends Application implements Observer {
 		}
 		System.out.println(" ^ ^ ^ ^ ^ ");
 	}
+	
+	/**
+	 * Retrieves the 'Name Response' containing my username and IP Address
+	 * when this application receives a 'Name Request'.
+	 * @return The Name Response.
+	 */
 	public String getResponse() {
 		return "##### " +username+ " ##### " + getIpAddress("localhost").getHostAddress();
 	}

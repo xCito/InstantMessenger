@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.Observable;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-public class Socket extends Observable{
+public class Socket extends Observable {
 
 	private int port;
 	private InetAddress localhost;
@@ -33,7 +33,12 @@ public class Socket extends Observable{
 
 	}
 	
-	
+	/**
+	 * Sends a User Datagram Protocol (UDP) message to a specified IP and Port. 
+	 * @param data		- The message / payload
+	 * @param destAdd	- The destination IP address where the message is going
+	 * @param destPort	- The port number of that destination
+	 */
 	public void send( String data, InetAddress destAdd, int destPort) {
 		byte[] buff = data.getBytes();
 		DatagramPacket packetOut = new DatagramPacket(buff, buff.length, destAdd, destPort);
@@ -47,6 +52,14 @@ public class Socket extends Observable{
 		}
 	}
 	
+	
+	/**
+	 * Open a temporary DatagramSocket, broadcast a message out the specified network,
+	 * close the DatagramSocket
+	 * @param broadcastMessage	- The message to be broadcasted
+	 * @param address			- The Broadcast address (eg: 255.255.255.255)
+	 * @throws IOException		- Just in case I can't send it out the socket for some reason
+	 */
     public void broadcast( String broadcastMessage, InetAddress address) throws IOException {
         DatagramSocket socket = new DatagramSocket();
         socket.setBroadcast(true);
@@ -66,18 +79,18 @@ public class Socket extends Observable{
 		while(true) {
 			try {
 				// wait for incoming messages
-				System.out.println("Waiting.....");
 				socket.receive(packetIn);
 				
 				String data = new String(packetIn.getData());
-				System.out.println("----->" + data);
+				System.out.println("----->" + data);		// DEBUG (prints the incoming message)
 				
-				// "emit" and event when message received
+				// Hold packet data in string array
 				String[] packet = new String[3];
-				packet[0] = packetIn.getAddress().getHostAddress();
-				packet[1] = String.valueOf(packetIn.getPort());
-				packet[2] = data;
+				packet[0] = packetIn.getAddress().getHostAddress();	// IP
+				packet[1] = String.valueOf(packetIn.getPort());		// Port
+				packet[2] = data;									// Payload
 				
+				// "emit" an event when message received and send packet data as well
 				setChanged();
 				notifyObservers( packet );	
 			}
@@ -91,14 +104,13 @@ public class Socket extends Observable{
 			// Clear the buffer
 			for(int i=0; i<buffer.length; ++i)
 				buffer[i] = 0;
-			
-			//socket.close();
-			System.out.println(socket.isClosed());
-			//break;
+
 		}
 		
 	}
 	
+	
+	// Not really using this..
 	public void messageSeen() {
 		clearChanged();
 	}

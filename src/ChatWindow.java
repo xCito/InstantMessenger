@@ -38,22 +38,17 @@ public class ChatWindow extends Observable {
 	private Label label;			// UI stuff
 	private ImageView imgView;		// UI stuff
 	
-	private String name;			// Chat owner's Username
-	
 	private String destName;		// Recipient's ID
 	private InetAddress destIP;		// Recipient's IP address
 	private int destPort;			// Recipient's Port number
 	
-	//private boolean requesting;		// True if waiting for a response to a name request 
 	private boolean isOpen;			// True if the chat window is open
-	//private boolean internalComm;	// True if the ChatWindow is chatting with another ChatWindow
 	private boolean darkTheme;
 	
-	public ChatWindow( String username, InetAddress srcIP, int srcPort ) {
+	public ChatWindow() {
 		curInstanceCount = instanceCount++;
-		destName = "Unknown";
+		destName = "Unknown" + curInstanceCount;
 		darkTheme = false;
-		this.name = username;
 		this.isOpen = false;
 		Platform.runLater( () -> stage = new Stage());
 		createView();
@@ -78,8 +73,6 @@ public class ChatWindow extends Observable {
 		stage.setOnCloseRequest( (e) -> {
 			closeWindow();
 		});
-		
-		System.out.println("Openning Window!" + destName);
 	}
 	
 	/**
@@ -178,6 +171,15 @@ public class ChatWindow extends Observable {
 		}
 	}
 	
+	
+	/**
+	 * Emits and event to notify this Chat Window has been closed
+	 */
+	public void closeWindow() {
+		setChanged();
+		notifyObservers("__**CLOSED**__");
+	}
+	
 
 // ------------------------------ GETTERS ------------------------------ //
 	/**
@@ -214,6 +216,15 @@ public class ChatWindow extends Observable {
 		return destName;
 	}
 	
+	
+	/**
+	 * Returns true if the Chat Window stage is being shown
+	 * @return boolean
+	 */
+	public boolean isOpen() {
+		return isOpen;
+	}
+	
 // ------------------------------ SETTERS ------------------------------ //
 
 	
@@ -230,17 +241,16 @@ public class ChatWindow extends Observable {
 		destPort = port;
 	}
 
+	/**
+	 * Updates the Stage title and "To: " label with the name
+	 * and IP of the other user.
+	 */
 	public void updateStageTitle() {
-		Platform.runLater(() -> stage.setTitle(destName + " | " + destIP));
-		Platform.runLater(() -> label.setText("To: " + destName));
+		Platform.runLater(() -> 		{
+			stage.setTitle(destName + " | " + destIP);
+			label.setText("To: " + destName);
+		});
 	}
-	
-	public boolean isOpen() {
-		return isOpen;
-	}
-	
-	public void closeWindow() {
-		setChanged();
-		notifyObservers("CLOSED");
-	}
+
+
 }

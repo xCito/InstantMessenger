@@ -20,23 +20,25 @@ public class QueryWindow {
 	public void launch() {
 		Stage stage = new Stage();
 		VBox vbox = new VBox();
-		Label label2 = new Label("Choose your name: ");
-		label2.setId("qLabel");
-		
-		TextField field2 = new TextField();
+		Label nameLabel = new Label("Choose your name: ");
+		TextField nameInputField = new TextField();
 		Button btn = new Button("Open Messenger App");
 		
+		// Apply style IDs and click events
+		nameLabel.setId("qLabel");
 		btn.setOnAction( (e) -> { 
-			this.name = field2.getText();
-			stage.close(); 
+			this.name = nameInputField.getText();	// Extract name from input field
+			stage.close(); 							// Close this window
 		});
 		btn.setDefaultButton(true);
 		btn.setId("queryButton");
 		
-		vbox.getChildren().addAll(label2, field2, btn);
+		// Position and apply style
+		vbox.getChildren().addAll(nameLabel, nameInputField, btn);
 		vbox.setAlignment(Pos.CENTER);
 		vbox.getStylesheets().add("style.css");
 		
+		// Make actual stage pretty and set sizes
 		Scene scene = new Scene(vbox);
 		scene.getStylesheets().add("style.css");
 		stage.setScene(scene);
@@ -45,8 +47,7 @@ public class QueryWindow {
 		stage.setTitle("Port Selection");
 		stage.initStyle(StageStyle.UTILITY);
 		stage.setOnCloseRequest((e) -> System.exit(0)); 
-		field2.requestFocus();
-		stage.showAndWait();
+		stage.showAndWait();	// <---------- OPENS THE WINDOW and holds the Javafx thread from opening other Stages (windows)
 	}
 	
 	public String getName() {
