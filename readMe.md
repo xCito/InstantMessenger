@@ -1,29 +1,26 @@
 # Messenger Thing
-Networking class project to build a chat messenger, UDP style. (no TCP or anything else fancy).
+Networking class project to build a chat messenger, UDP style. (no TCP or anything else fancy). This chat messenger mimics Address Resolution Protocol ([ARP](https://en.wikipedia.org/wiki/Address_Resolution_Protocol "Wikipedia ARP")) by broadcasting a 'Name Request' to the network in attempt to receive unicast reply with a 'Name Response' Once the 'Name Response' is received, our chat messenger can unicast a message to the responding user. The application assumes all users attempting communicate are on port 64000.
+
+
+The 'Name Request' format: *????? OtherPerson ##### Me*
+The 'Name Response' format: *##### OtherPerson ##### 123.123.123.123*
 
 
 ### Query Window
-![Image of QueryWindow](https://github.com/xCito/InstantMessenger/blob/master/Screenshots/ssQueryWindow.png)
+![Image of QueryWindow](https://github.com/xCito/InstantMessenger/blob/broadcastFeature/Screenshots/ssQueryWindow2.png)
 
-This is the first window that will appear. This window will query the user what port to run this application on and also to enter an optional nickname.
+This is the first window that will appear. This window will query the user for a nickname/username be known as on a network.
 
 
 ### Menu/Conversation Starter
-![Image of Convo Starter](https://github.com/xCito/InstantMessenger/blob/master/Screenshots/ssConvoStarter.png)
+![Image of Convo Starter](https://github.com/xCito/InstantMessenger/blob/broadcastFeature/Screenshots/ssBroadcasterWindow.png)
 
 This is the second window that will appear. This window displays the user's chosen nickname/username, current IP address on their network, and the port this Messenger Thing application is running on.
-The user enter's the IP address and port number of another user (or their own) to start chatting with them.
+The user enter's the username of another user (or their own) to start chatting with them.
 
 
 ### The Chat Window
-![Image of Chat Window](https://github.com/xCito/InstantMessenger/blob/master/Screenshots/ssChatWindow.png)
+![Image of Chat Window](https://github.com/xCito/InstantMessenger/blob/broadcastFeature/Screenshots/ssChatWindow2.png)
 
-This window will appear when the user attempts to start chatting with another user or when the user receives a message. 
-If user1 is chatting with another user2 using this Messenger Thing application, they will know eachother's name. This is done right before that chatting begins. 
-
-If user1 (the initiator) wants to send a message to IP: 123.123.123.123 and Port: 8080, user1 will enter their IP and Port into the Conversation Start window and hit the Start Convo button. In the background, user1's Chat Window will send a name request to that IP and Port, the, open the ChatWindow. If user2's Messenger Thing app is ready and listening for messages, it will automatic create a new ChatWindow on their end (which wont appear yet) and send a name response to the user1 (the initiator). user1's window will change the default name of the other user from IP | Port to the name received from user2's nameResponse.
-
-
-
-*ScreenShot of that interaction*
-![Image of Chat Window](https://github.com/xCito/InstantMessenger/blob/master/Screenshots/ssTwoInstancesTalking.png)
+This window will appear when the this application receives a 'Name Request' or 'Name Response' from another user. In the case of when an incoming message is not from a user who has sent a 'Name Request' or 'Name Response', a new chat window will open as well, but will be labeled unknown. 
+ 
