@@ -1,10 +1,10 @@
-# Messenger Thing
+# Messenger Thing *(With Broadcasting)*
 Networking class project to build a chat messenger, UDP style. (no TCP or anything else fancy). This chat messenger mimics Address Resolution Protocol ([ARP](https://en.wikipedia.org/wiki/Address_Resolution_Protocol "Wikipedia ARP")) by broadcasting a 'Name Request' to the network in attempt to receive unicast reply with a 'Name Response' Once the 'Name Response' is received, our chat messenger can unicast a message to the responding user. The application assumes all users attempting communicate are on port 64000.
 
 
-The 'Name Request' format: *????? OtherPerson ##### Me*
+The 'Name Request' format: **????? OtherPerson ##### Me**
 
-The 'Name Response' format: *##### OtherPerson ##### 123.123.123.123*
+The 'Name Response' format: **##### OtherPerson ##### 123.123.123.123**
 
 ---
 
